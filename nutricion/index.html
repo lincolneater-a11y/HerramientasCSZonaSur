@@ -143,6 +143,29 @@ input::placeholder { color: var(--ink-2); opacity: .6; }
 .risk-l span.on { color: var(--ink); font-weight: 700; }
 .note { background: var(--surface-2); border-radius: 8px; padding: 10px 12px; font-size: .86rem; color: var(--ink-2); }
 .note b { color: var(--ink); }
+/* Tanner visual + velocidad anual */
+.tn-sec{margin-top:12px}.tn-sec>.lbl{display:block;margin-bottom:6px}
+.tn-g{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+@media(max-width:700px){.tn-g{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.tn-t{position:relative;display:flex;flex-direction:column;align-items:stretch;gap:4px;background:var(--surface);border:2px solid var(--line);border-radius:12px;padding:6px 6px 8px;cursor:pointer;font:inherit;color:var(--ink);text-align:center}
+.tn-t:hover{border-color:var(--teal)}.tn-t[aria-pressed="true"]{border-color:var(--teal);background:var(--teal-soft);box-shadow:0 0 0 2px var(--teal) inset}
+.tn-t svg{display:block;width:100%;height:auto;border-radius:8px;background:var(--surface-2)}
+.tn-n{position:absolute;left:10px;top:8px;font-weight:800;font-size:1.05rem;color:var(--teal);background:var(--surface);border-radius:6px;padding:0 6px;line-height:1.4}
+.tn-c{font-size:.76rem;line-height:1.25;font-weight:600}
+.tn-det{margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--surface-2);font-size:.88rem}
+.tn-det b{color:var(--teal)}
+.vh{border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--surface-2);margin:6px 0 14px}
+.vh-top{display:flex;gap:14px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap}
+.vh-k{font-size:.8rem;font-weight:700;color:var(--ink-2);text-transform:uppercase;letter-spacing:.03em}
+.vh-big{font-size:2.3rem;font-weight:800;line-height:1.1;color:var(--ink)}.vh-big small{font-size:1rem;font-weight:700;color:var(--ink-2)}
+.vh-r{display:flex;flex-direction:column;align-items:flex-end;gap:4px;font-size:.86rem}
+.vm{position:relative;display:flex;height:14px;border-radius:7px;overflow:hidden;margin:14px 0 2px;border:1px solid var(--line)}
+.vm i{display:block;height:100%}.vm .a{width:10%;background:var(--bordeaux-soft)}.vm .b{width:15%;background:var(--gold-soft)}.vm .c{width:50%;background:var(--ok-soft)}.vm .d{width:15%;background:var(--ok-soft);opacity:.65}.vm .e{width:10%;background:var(--gold-soft)}
+.vmw{position:relative}.vm-k{position:absolute;top:-3px;width:4px;height:20px;margin-left:-2px;background:var(--ink);border-radius:2px;box-shadow:0 0 0 2px var(--surface)}
+.vm-l{position:relative;height:16px;font-size:.7rem;color:var(--ink-2)}.vm-l span{position:absolute;transform:translateX(-50%)}
+.vh-s{margin:8px 0 0;font-size:.88rem}.vh-s2{margin:4px 0 0;font-size:.84rem;color:var(--ink-2)}
+details.vdet{margin-top:14px;border:1px solid var(--line);border-radius:10px;padding:0 12px}details.vdet>summary{cursor:pointer;font-weight:700;padding:10px 0}
+@media print{.tn-t:not([aria-pressed="true"]){display:none}.tn-g{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .alert { border-radius: 8px; padding: 10px 12px; font-size: .86rem; display: flex; gap: 10px; align-items: flex-start; }
 .alert + .alert { margin-top: 8px; }
 .alert.warn { background: var(--gold-soft); color: var(--ink); border: 1px solid var(--gold); }
@@ -654,26 +677,38 @@ details.card[open] > summary { margin-bottom: 12px; }
     <div class="chips" id="es-chips"></div>
   </div>
 
+  <div class="card" id="es-tancard">
+    <h3>2 · Maduración puberal (estadio de Tanner)</h3>
+    <p class="sub">Opcional. Toque el dibujo que más se parezca a lo observado en la persona; vuelva a tocarlo para quitarlo. Los dibujos son esquemas orientativos: el estadio se define por el examen clínico.</p>
+    <div class="tn-sec"><span class="lbl" id="tn-g1-t">Desarrollo mamario / genital</span><div class="tn-g" id="tn-g1"></div></div>
+    <div class="tn-sec"><span class="lbl">Vello pubiano</span><div class="tn-g" id="tn-g2"></div></div>
+    <div class="tn-det" id="tn-det"></div>
+    <div id="es-tan-msg" style="margin-top:10px"></div>
+    <details class="vdet"><summary>Elegir en una lista (alternativa)</summary><div class="grid" style="padding-bottom:12px">
+      <label class="field"><span id="es-tan-l">Estadio de Tanner: mama / genitales</span><select id="es-tan"><option value="">No evaluado</option><option value="1">Estadio 1 (prepuberal)</option><option value="2">Estadio 2</option><option value="3">Estadio 3</option><option value="4">Estadio 4</option><option value="5">Estadio 5 (adulto)</option></select></label>
+      <label class="field"><span>Estadio de Tanner: vello pubiano</span><select id="es-vp"><option value="">No evaluado</option><option value="1">Estadio 1</option><option value="2">Estadio 2</option><option value="3">Estadio 3</option><option value="4">Estadio 4</option><option value="5">Estadio 5</option></select></label>
+    </div></details>
+  </div>
+
   <div class="card">
-    <h3>2 · Estado nutricional y curvas</h3>
+    <h3>3 · Estado nutricional y curvas</h3>
     <div id="es-out"></div><div id="es-cond-out"></div>
   </div>
 
   <div class="card">
-    <h3>3 · Velocidad de crecimiento</h3>
-    <p class="sub">Cargue controles anteriores (fecha, peso y talla). La velocidad se calcula entre controles consecutivos y se expresa en cm por año. Requiere la fecha de nacimiento.</p>
+    <h3>4 · Velocidad de crecimiento</h3>
+    <p class="sub">La velocidad anual se calcula con el control que esté más cerca de 12 meses atrás (entre 9 y 15 meses), sea uno cargado acá o guardado en la planilla. Requiere la fecha de nacimiento y la talla actual.</p>
+    <div id="es-velhero"></div>
     <div class="src-h" style="margin:6px 0"><span class="lbl">Controles anteriores</span><button class="btn small" id="es-add" type="button">Agregar control</button></div>
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:4px 0"><button class="btn small" data-plh="es" type="button">Traer controles anteriores de la planilla</button></div><div class="note" id="es-hst" style="margin:6px 0 8px"></div>
     <div id="es-hist"></div>
-    <div id="es-vel" style="margin-top:12px"></div>
+    <details class="vdet" id="es-veld"><summary>Detalle por intervalos y gráficos de centilos</summary><div id="es-vel" style="margin:4px 0 12px"></div></details>
   </div>
 
   <div class="card">
-    <h3>4 · Maduración puberal y talla blanco familiar</h3>
-    <p class="sub">Opcional. Ayuda a interpretar la velocidad y la talla actual.</p>
+    <h3>5 · Talla blanco familiar</h3>
+    <p class="sub">Opcional. Ingrese las tallas de los padres para estimar la talla esperada y su rango.</p>
     <div class="grid">
-      <label class="field"><span id="es-tan-l">Estadio de Tanner: mama / genitales</span><select id="es-tan"><option value="">No evaluado</option><option value="1">Estadio 1 (prepuberal)</option><option value="2">Estadio 2</option><option value="3">Estadio 3</option><option value="4">Estadio 4</option><option value="5">Estadio 5 (adulto)</option></select></label>
-      <label class="field"><span>Estadio de Tanner: vello pubiano</span><select id="es-vp"><option value="">No evaluado</option><option value="1">Estadio 1</option><option value="2">Estadio 2</option><option value="3">Estadio 3</option><option value="4">Estadio 4</option><option value="5">Estadio 5</option></select></label>
       <label class="field"><span>Talla del padre (cm)</span><input type="number" id="es-fh" min="140" max="220" step="0.1" inputmode="decimal"></label>
       <label class="field"><span>Talla de la madre (cm)</span><input type="number" id="es-mh" min="130" max="210" step="0.1" inputmode="decimal"></label>
     </div>
@@ -682,7 +717,7 @@ details.card[open] > summary { margin-bottom: 12px; }
   </div>
 
   <div class="card">
-    <h3>5 · Resumen para Acuario</h3>
+    <h3>6 · Resumen para Acuario</h3>
     <p class="sub">Se arma solo con los datos cargados (valoración, velocidad, Tanner y talla blanco familiar). Revíselo y edítelo antes de copiar.</p>
     <div id="es-acu"></div>
   </div>
@@ -3717,6 +3752,7 @@ function esChart(P, k, pts) {
 function esRender() { esRender0(); try { esAcu(); } catch (e) { } try { condRender('es'); } catch (e) { } }
 function esRender0() {
   var out = $('es-out'), P = esRead(), L = [], T = '', H = '';
+  try { tnSync(P); } catch (e) { }
   $('es-tan-l').textContent = P.sex === 'M' ? 'Estadio de Tanner: genitales' : (P.sex === 'F' ? 'Estadio de Tanner: mamas' : 'Estadio de Tanner: mama / genitales');
   var ch = []; if (P.m !== null) ch.push('Edad <b>' + Math.floor(P.m / 12) + ' años ' + Math.floor(P.m % 12) + ' m ' + Math.round((P.m - Math.floor(P.m)) * MD) + ' d</b>'); if (P.dec !== null) ch.push('Edad decimal <b>' + fmt(P.dec, 2) + ' años</b>'); if (P.w && P.h) ch.push('IMC <b>' + fmt(P.w / Math.pow(P.h / 100, 2), 1) + ' kg/m²</b>');
   $('es-chips').innerHTML = ch.map(function (c) { return '<span class="chip">' + c + '</span>'; }).join('');
@@ -3757,7 +3793,8 @@ function esHistHTML() {
   }).join('') + '</tbody></table></div>';
 }
 function esVel(P) {
-  var out = $('es-vel'), pts = esPts(P).filter(function (p) { return p.d; });
+  var out = $('es-vel'), pts = esPts(P).filter(function (p) { return p.d; }), hero = null;
+  try { hero = esVelHero(P, pts); } catch (e) { hero = null; }
   if (!P.dob) { out.innerHTML = '<div class="alert info">' + ICON_INFO + '<span>Cargue la fecha de nacimiento para calcular la velocidad.</span></div>'; esVelCopy = []; return; }
   var rows = '', L = [], hp = [], wp = [], anyPub = false, anyOut = false;
   for (var i = 1; i < pts.length; i++) {
@@ -3785,7 +3822,7 @@ function esVel(P) {
   if (anyOut) H += '<div class="alert info" style="margin-top:8px">' + ICON_INFO + '<span>Algún intervalo cae fuera del rango de edad de las láminas (talla: varones 4 a 16 años, mujeres 4 a 13,5; peso: varones 4 a 15,5, mujeres 4 a 14). Allí no hay centilo de referencia: use la velocidad en cm/año, el Δ Z y la maduración.</span></div>';
   if (anyPub) H += '<div class="alert warn" style="margin-top:8px">' + ICON_WARN + '<span>En edades puberales el centilo es orientativo: las curvas corresponden a niños con estirón a la edad promedio. Si la pubertad es temprana o tardía, la velocidad puede salir de los centilos sin ser anormal (áreas sombreadas de la lámina). Interprete junto con el estadio de Tanner y, si hace falta, la edad ósea.</span></div>';
   H += '<p class="note" style="margin-top:8px">La velocidad se anualiza (cambio ÷ años entre controles). Los centilos de Tanner, Whitehouse y Takaishi (1966) son de «año completo», es decir, valen para intervalos cercanos a 12 meses; con intervalos menores de 6 meses no se clasifica y entre 6 y 9 meses conviene tomarlo con cautela. Una velocidad de talla sostenida por debajo de P10, y sobre todo de P3, justifica estudiar la causa. Un cambio de Z de talla de 0,67 DE o más entre controles (cruce de una banda de percentilos) también amerita revisar el crecimiento.</p>';
-  out.innerHTML = H; esVelCopy = L;
+  out.innerHTML = H; esVelCopy = hero ? L.concat([hero]) : L;
 }
 var esVelCopy = [];
 function esMat(P) {
@@ -3797,6 +3834,7 @@ function esMat(P) {
     H += '<div class="alert ' + (msg ? 'warn' : 'info') + '">' + (msg ? ICON_WARN : ICON_INFO) + '<span><b>Tanner ' + (P.sex === 'F' ? 'mamas' : 'genitales') + ' ' + t + (P.vp ? ' · vello pubiano ' + P.vp : '') + '.</b> ' + (msg ? msg[1] : 'El inicio puberal está dentro del rango esperado para la edad.') + ' El estirón puberal ocurre al inicio de la pubertad en las mujeres (estadios 2 a 3, antes de la menarca) y más tarde en los varones (estadios 3 a 4).</span></div>';
     L.push('Tanner ' + (P.sex === 'F' ? 'mamas' : 'genitales') + ' ' + t + (P.vp ? ' · vello pubiano ' + P.vp : '') + (msg ? ' · ' + msg[1] : ''));
   }
+  var tm = $('es-tan-msg'); if (tm) tm.innerHTML = H; H = '';
   if (P.fh && P.mh && P.sex) {
     var tfc = P.sex === 'M' ? (P.fh + P.mh + 13) / 2 : (P.fh + P.mh - 13) / 2, zt = w07Z(P.sex, 'h', 228, tfc), txt = 'Talla blanco familiar: <b>' + fmt(tfc, 1) + ' cm</b> (rango ' + fmt(tfc - 8.5, 1) + ' a ' + fmt(tfc + 8.5, 1) + ' cm)';
     if (zt !== null) txt += ', equivalente al percentil <b>' + pctTxt(normCdf(zt) * 100) + '</b> de la OMS a los 19 años (Z ' + (zt >= 0 ? '+' : '−') + fmt(Math.abs(zt), 2) + ')';
@@ -3806,9 +3844,118 @@ function esMat(P) {
     H += '<div class="alert info" style="margin-top:8px">' + ICON_INFO + '<span>' + txt + '. Es una estimación estadística: no predice la talla final de un paciente en particular y debe interpretarse con la maduración puberal.</span></div>';
     L.push('Talla blanco familiar: ' + fmt(tfc, 1) + ' cm (rango ' + fmt(tfc - 8.5, 1) + ' a ' + fmt(tfc + 8.5, 1) + ')');
   }
-  out.innerHTML = H || '<p class="note">Cargue el estadio de Tanner y las tallas de los padres para ver la interpretación.</p>'; esMatCopy = L;
+  out.innerHTML = H || '<p class="note">Cargue las tallas de los padres para estimar la talla blanco familiar.</p>'; esMatCopy = L;
 }
 var esMatCopy = [];
+
+/* ---- Tanner visual (dibujos esquemáticos propios) y velocidad anual ---- */
+var TN_SKIN = '#f3d5bd', TN_LN = '#8a5f48', TN_AR = '#d9a090', TN_HAIR = '#3b2a22', TN_SEX = null, TN_ROM = ['', 'I', 'II', 'III', 'IV', 'V'];
+var TN_TXT = {
+  F: { t: 'Desarrollo mamario', c: ['Prepuberal', 'Botón mamario', 'Mama y areola crecen', 'Areola y papila elevadas', 'Mama adulta'],
+    d: ['Prepuberal: sólo se eleva la papila.', 'Botón mamario: elevación de la mama y de la papila, con aumento del diámetro de la areola.', 'La mama y la areola siguen creciendo, sin separación de sus contornos.', 'La areola y la papila forman una elevación secundaria por encima de la mama.', 'Mama adulta: la papila sobresale y la areola se integra al contorno de la mama.'] },
+  M: { t: 'Desarrollo genital', c: ['Infantil · testes 2–4 ml', 'Testes y escroto crecen · 4–6 ml', 'Pene se alarga · 6–12 ml', 'Pene más ancho, glande · 12–20 ml', 'Adulto · > 20 ml'],
+    d: ['Prepuberal: testes (2 a 4 ml), escroto y pene de tamaño infantil.', 'Aumento de los testes (4 a 6 ml) y del escroto, cuya piel se enrojece y cambia de textura; el pene casi no cambia.', 'Crece el pene, sobre todo en longitud, y siguen creciendo los testes (6 a 12 ml).', 'El pene se ensancha y se desarrolla el glande; testes de 12 a 20 ml y escroto de piel más oscura.', 'Genitales de tamaño y forma adultos (testes de más de 20 ml).'] },
+  V: { t: 'Vello pubiano', c: ['Sin vello', 'Escaso, lacio', 'Oscuro y rizado', 'Tipo adulto, menor área', 'Adulto, llega a muslos'],
+    d: ['Sin vello pubiano (sólo vello fino, como en el abdomen).', 'Vello escaso, largo, lacio y poco pigmentado, en la base del pene o en los labios mayores.', 'Vello más oscuro, grueso y rizado, que se extiende sobre el pubis.', 'Vello de tipo adulto, abundante, pero en una superficie menor, sin llegar a la cara interna de los muslos.', 'Vello de tipo adulto, que se extiende a la cara interna de los muslos.'] }
+};
+function tnRnd(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; var t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function tnSvgOpen(vb) { return '<svg viewBox="' + vb + '" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true" focusable="false">'; }
+function tnBreast(s) {
+  var p = [1.5, 8, 15, 21, 27][s - 1], h = [0, 13, 19, 23, 26][s - 1], c = 54, g = tnSvgOpen('0 0 120 100');
+  var curve = h === 0 ? 'L30,50 Q34,54 30,58' : 'L30,' + (c - h) + ' C' + (30 + p * 0.35) + ',' + (c - h * 0.55) + ' ' + (30 + p) + ',' + (c - h * 0.45) + ' ' + (30 + p) + ',' + c + ' C' + (30 + p) + ',' + (c + h * 0.45) + ' ' + (30 + p * 0.35) + ',' + (c + h * 0.55) + ' 30,' + (c + h);
+  g += '<path d="M8,6 L30,6 ' + curve + ' L30,94 L8,94 Z" fill="' + TN_SKIN + '" stroke="' + TN_LN + '" stroke-width="1.6" stroke-linejoin="round"/>';
+  if (s >= 2) g += '<ellipse cx="' + (30 + p) + '" cy="' + c + '" rx="' + (s === 4 ? 3.2 : 1.7) + '" ry="' + [0, 5, 7, 7.5, 6][s - 1] + '" fill="' + TN_AR + '"/>';
+  g += '<ellipse cx="' + (30 + p + (s === 4 ? 2.4 : 0.8)) + '" cy="' + c + '" rx="2" ry="2.5" fill="' + TN_AR + '" stroke="' + TN_LN + '" stroke-width="1"/>';
+  g += '<path d="M66,6 L66,94 L114,94 L114,6 Z" fill="' + TN_SKIN + '" stroke="' + TN_LN + '" stroke-width="1.6"/><path d="M66,14 Q90,6 114,14" fill="none" stroke="' + TN_LN + '" stroke-width="1.2" opacity=".7"/>';
+  var r = [0, 6.5, 9.5, 11.5, 13][s - 1], ar = [0, 3.4, 5.2, 4.6, 3.6][s - 1];
+  [80, 100].forEach(function (x) {
+    if (r) g += '<circle cx="' + x + '" cy="58" r="' + r + '" fill="#f8e0cc" stroke="' + TN_LN + '" stroke-width="1.3"/>';
+    if (ar) g += '<circle cx="' + x + '" cy="58" r="' + ar + '" fill="' + TN_AR + '"/>' + (s === 4 ? '<circle cx="' + x + '" cy="58" r="2.2" fill="#c98a7a" stroke="' + TN_LN + '" stroke-width=".8"/>' : '');
+    g += '<circle cx="' + x + '" cy="58" r="' + (s === 1 ? 1.4 : 1.5) + '" fill="#b9786a"/>';
+  });
+  return g + '</svg>';
+}
+function tnPubic(s, withGen) {
+  var g = tnSvgOpen('0 0 100 100');
+  g += '<path d="M16,4 H84 C86,40 72,72 50,97 C28,72 14,40 16,4 Z" fill="' + TN_SKIN + '" stroke="' + TN_LN + '" stroke-width="1.6" stroke-linejoin="round"/>';
+  g += '<path d="M30,48 Q40,70 50,92 M70,48 Q60,70 50,92" fill="none" stroke="' + TN_LN + '" stroke-width="1" opacity=".45"/>';
+  var spec = [null, { n: 14, y0: 60, y1: 84, hw: 7, k: 0.7, len: 4.6, col: '#8a7364', w: 0.55, curl: 0.3 }, { n: 60, y0: 52, y1: 84, hw: 15, k: 0.85, len: 3.8, col: '#4a372d', w: 0.7, curl: 1.0 }, { n: 120, y0: 46, y1: 86, hw: 22, k: 0.85, len: 3.8, col: TN_HAIR, w: 0.75, curl: 1.2 }, { n: 170, y0: 40, y1: 90, hw: 27, k: 0.7, len: 4, col: TN_HAIR, w: 0.75, curl: 1.2 }][s - 1];
+  if (spec) {
+    var R = tnRnd(s * 977 + 13), d = '';
+    for (var i = 0; i < spec.n; i++) {
+      var y = spec.y0 + R() * (spec.y1 - spec.y0), t = (y - spec.y0) / (spec.y1 - spec.y0), w = spec.hw * (1 - t * spec.k), x = 50 + (R() * 2 - 1) * w, a = (R() * 2 - 1) * 1.1 + (s === 2 ? 0 : 0), l = spec.len * (0.7 + R() * 0.6);
+      var dx = Math.sin(a) * l, dy = Math.cos(a) * l * 0.9;
+      d += 'M' + x.toFixed(1) + ',' + y.toFixed(1) + ' q' + (dx * 0.5 + (R() - 0.5) * spec.curl * 3).toFixed(1) + ',' + (dy * 0.4).toFixed(1) + ' ' + dx.toFixed(1) + ',' + dy.toFixed(1) + ' ';
+    }
+    if (s === 5) { for (var j = 0; j < 14; j++) { var xx = 47 + R() * 6, yy = 33 + R() * 8; d += 'M' + xx.toFixed(1) + ',' + yy.toFixed(1) + ' q1,2 ' + ((R() - 0.5) * 3).toFixed(1) + ',4 '; } }
+    g += '<path d="' + d + '" fill="none" stroke="' + spec.col + '" stroke-width="' + spec.w + '" stroke-linecap="round"/>';
+  }
+  return g + '</svg>';
+}
+function tnGenital(s) {
+  var L = [13, 15, 23, 30, 37][s - 1], W = [7, 7.5, 9.5, 12, 14][s - 1], rx = [11, 14, 17, 20, 23][s - 1], ry = [10, 13, 17, 20, 23][s - 1], tx = [3.6, 5, 6.6, 8.2, 9.8][s - 1], ty = [4.8, 6.8, 9.2, 11.4, 13.4][s - 1];
+  var y0 = (100 - (L * 0.45 + 2 * ry)) / 2 + 2, sy = y0 + L * 0.45 + ry, sk = s === 2 ? '#eab6a2' : (s >= 4 ? '#d9a58b' : TN_SKIN), g = tnSvgOpen('0 0 100 100');
+  g += '<ellipse cx="50" cy="' + sy + '" rx="' + rx + '" ry="' + ry + '" fill="' + sk + '" stroke="' + TN_LN + '" stroke-width="1.6"/>';
+  g += '<line x1="50" y1="' + (sy - ry + 3) + '" x2="50" y2="' + (sy + ry - 2) + '" stroke="' + TN_LN + '" stroke-width="1" opacity=".5"/>';
+  [-1, 1].forEach(function (k) { g += '<ellipse cx="' + (50 + k * rx * 0.42) + '" cy="' + (sy + ry * 0.12) + '" rx="' + tx + '" ry="' + ty + '" fill="#f6e1d3" stroke="' + TN_LN + '" stroke-width="1"/>'; });
+  g += '<path d="M' + (50 - W / 2) + ',' + y0 + ' L' + (50 - W / 2) + ',' + (y0 + L - W / 2) + ' A' + (W / 2) + ',' + (W / 2) + ' 0 0 0 ' + (50 + W / 2) + ',' + (y0 + L - W / 2) + ' L' + (50 + W / 2) + ',' + y0 + ' Z" fill="' + sk + '" stroke="' + TN_LN + '" stroke-width="1.6" stroke-linejoin="round"/>';
+  if (s >= 4) g += '<path d="M' + (50 - W / 2 + 0.8) + ',' + (y0 + L - W * 0.95) + ' Q50,' + (y0 + L - W * 1.45) + ' ' + (50 + W / 2 - 0.8) + ',' + (y0 + L - W * 0.95) + '" fill="none" stroke="' + TN_LN + '" stroke-width="1.1" opacity=".7"/>';
+  return g + '</svg>';
+}
+function tnTiles(kind, sex) {
+  var T = TN_TXT[kind === 'g' ? sex : 'V'], svg = kind === 'v' ? tnPubic : (sex === 'F' ? tnBreast : tnGenital), h = '';
+  for (var s = 1; s <= 5; s++) h += '<button type="button" class="tn-t" data-tn="' + kind + '" data-v="' + s + '" aria-pressed="false" aria-label="' + T.t + ', estadio ' + TN_ROM[s] + ': ' + T.d[s - 1].replace(/"/g, '') + '"><span class="tn-n">' + TN_ROM[s] + '</span>' + svg(s) + '<span class="tn-c">' + T.c[s - 1] + '</span></button>';
+  return h;
+}
+function tnSync(P) {
+  var g1 = $('tn-g1'), g2 = $('tn-g2'); if (!g1 || !g2) return;
+  var sex = P.sex || '';
+  if (TN_SEX === null) { g2.innerHTML = tnTiles('v'); }
+  if (sex !== TN_SEX) {
+    TN_SEX = sex;
+    if (sex) { g1.innerHTML = tnTiles('g', sex); $('tn-g1-t').textContent = TN_TXT[sex].t + (sex === 'F' ? ' (mamas)' : ' (genitales)'); }
+    else { g1.innerHTML = '<div class="note" style="grid-column:1/-1">Seleccione el sexo en los datos de la persona para ver los dibujos de mamas o genitales.</div>'; $('tn-g1-t').textContent = 'Desarrollo mamario / genital'; }
+  }
+  var vg = $('es-tan').value, vv = $('es-vp').value;
+  document.querySelectorAll('#es-tancard .tn-t').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-v') === (b.getAttribute('data-tn') === 'g' ? vg : vv))); });
+  var det = [];
+  if (vg && sex) det.push('<b>' + TN_TXT[sex].t + ', estadio ' + TN_ROM[+vg] + ':</b> ' + TN_TXT[sex].d[+vg - 1]);
+  if (vv) det.push('<b>Vello pubiano, estadio ' + TN_ROM[+vv] + ':</b> ' + TN_TXT.V.d[+vv - 1]);
+  $('tn-det').innerHTML = det.length ? det.join('<br>') : 'Aún no se eligió ningún estadio. La maduración ayuda a interpretar la velocidad de crecimiento y la talla.';
+}
+document.addEventListener('click', function (e) {
+  var b = e.target.closest ? e.target.closest('.tn-t') : null; if (!b) return;
+  var sel = $(b.getAttribute('data-tn') === 'g' ? 'es-tan' : 'es-vp'), v = b.getAttribute('data-v');
+  sel.value = sel.value === v ? '' : v; sel.dispatchEvent(new Event('change', { bubbles: true }));
+});
+// Velocidad anual: toma el control cuya distancia al actual sea la más cercana a 12 meses (ideal 9 a 15); incluye los guardados en la planilla
+function esVelHero(P, pts) {
+  var box = $('es-velhero'); if (!box) return null;
+  var cur = null; pts.forEach(function (p) { if (p.cur) cur = p; });
+  if (!P.dob || !cur || !cur.h) { box.innerHTML = '<div class="alert info">' + ICON_INFO + '<span>Para ver la velocidad anual cargue la fecha de nacimiento, la fecha de control y la talla actual.</span></div>'; return null; }
+  var best = null, fb = null;
+  pts.forEach(function (a) {
+    if (a.cur || !a.h || !a.d) return; var mo = cur.m - a.m; if (!(mo > 0)) return; var o = { a: a, mo: mo, dist: Math.abs(mo - 12) };
+    if (mo >= 9 && mo <= 15) { if (!best || o.dist < best.dist) best = o; } else if (mo >= 6 && mo <= 24) { if (!fb || o.dist < fb.dist) fb = o; }
+  });
+  var s = best || fb;
+  if (!s) { box.innerHTML = '<div class="alert info">' + ICON_INFO + '<span>No hay un control con talla de hace 9 a 15 meses (ideal 12). Agregue uno en «Controles anteriores» o tráigalo de la planilla para estimar la velocidad anual.</span></div>'; return null; }
+  var a = s.a, yrs = s.mo / 12, v = (cur.h - a.h) / yrs, mid = (a.m + cur.m) / 24, ok = !!best;
+  var ch = P.sex ? twPct(P.sex, 'h', mid, v) : null, dw = (a.w && cur.w) ? (cur.w - a.w) / yrs : null, cw = (dw !== null && P.sex) ? twPct(P.sex, 'w', mid, dw) : null;
+  var days = Math.round(esDays(a.d, cur.d) || s.mo * MD), fd = function (iso) { return fmtDate(new Date(iso + 'T00:00:00')); };
+  var pos = function (o) { if (o.rel === '<') return 5; if (o.rel === '>') return 95; var xs = [3, 10, 50, 90, 97], ps = [10, 25, 50, 75, 90], pc = Math.max(3, Math.min(97, o.pc)); for (var i = 0; i < 4; i++) if (pc <= xs[i + 1]) return ps[i] + (pc - xs[i]) / (xs[i + 1] - xs[i]) * (ps[i + 1] - ps[i]); return 90; };
+  var H = '<div class="vh"><div class="vh-top"><div><div class="vh-k">Velocidad de talla · anualizada</div><div class="vh-big">' + (v >= 0 ? '' : '−') + fmt(Math.abs(v), 1) + '<small> cm/año</small></div></div>';
+  if (ch) { var c = twClass(ch); H += '<div class="vh-r"><span class="badge ' + c[0] + '">' + c[1] + '</span><span>Centilo de Tanner-Whitehouse: <b>' + twTxt(ch) + '</b></span></div></div><div class="vmw"><div class="vm"><i class="a"></i><i class="b"></i><i class="c"></i><i class="d"></i><i class="e"></i></div><span class="vm-k" style="left:' + pos(ch).toFixed(1) + '%"></span></div><div class="vm-l"><span style="left:10%">P3</span><span style="left:25%">P10</span><span style="left:50%">P50</span><span style="left:75%">P90</span><span style="left:90%">P97</span></div>'; }
+  else H += '<div class="vh-r"><span class="badge info">' + (P.sex ? 'Fuera del rango de las láminas' : 'Falta el sexo para el centilo') + '</span></div></div>';
+  H += '<p class="vh-s">Entre el control del <b>' + fd(a.d) + '</b> (' + fmt(a.h, 1) + ' cm) y el de <b>' + fd(cur.d) + '</b> (' + fmt(cur.h, 1) + ' cm): <b>' + (cur.h - a.h >= 0 ? '+' : '−') + fmt(Math.abs(cur.h - a.h), 1) + ' cm en ' + fmt(s.mo, 0) + ' meses</b> (' + days + ' días).' + (a.pl ? ' <small>Control traído de la planilla.</small>' : '') + '</p>';
+  if (dw !== null) H += '<p class="vh-s2">Ganancia de peso: <b>' + fmt(dw, 1) + ' kg/año</b>' + (cw ? ' · centilo de Tanner-Whitehouse ' + twTxt(cw) : '') + '.</p>';
+  if (!ok) H += '<div class="alert warn" style="margin-top:8px">' + ICON_WARN + '<span>No hay un control de 9 a 15 meses atrás: se usó el más cercano (' + fmt(s.mo, 0) + ' meses). Los centilos son de «año completo»: interprete con cautela.</span></div>';
+  var pub = P.sex && (P.sex === 'M' ? (mid >= 12 && mid <= 16) : (mid >= 10 && mid <= 14));
+  if (pub || P.tan) H += '<p class="vh-s2">' + (P.tan ? 'Estadio de Tanner cargado: ' + (P.sex === 'F' ? 'mamas ' : 'genitales ') + TN_ROM[+P.tan] + (P.vp ? ' · vello pubiano ' + TN_ROM[+P.vp] : '') + '. ' : 'Aún no cargó el estadio de Tanner (tarjeta 2). ') + (pub ? 'En edades puberales la velocidad varía mucho según el momento del estirón: interprétela junto con la maduración.' : '') + '</p>';
+  box.innerHTML = H + '</div>';
+  var tx = function (o) { return o ? ' (centilo TW ' + twTxt(o).replace('&lt;', '<').replace('&gt;', '>') + ': ' + twClass(o)[1].replace('&lt;', '<').replace('&gt;', '>') + ')' : ''; };
+  return 'Velocidad anual ' + a.d + ' a ' + cur.d + ' (' + fmt(s.mo, 0) + ' meses): ' + fmt(v, 1) + ' cm/año' + tx(ch) + (dw !== null ? ' · ' + fmt(dw, 1) + ' kg/año' + tx(cw) : '');
+}
 
 /* ---- Resumen en formato Acuario (Escolar y adolescente) ---- */
 function acuHTML(pref, d) {
@@ -3845,7 +3992,7 @@ function esAcu() {
   if (cl.w && cl.w !== 'Normal') dxL.push(cl.w + ' según peso/edad' + zs('w') + '.');
   if (P.wc) { var wq2 = CS61C.waist(P.sex, P.m / 12, P.wc); if (wq2 && wq2.band === '≥ P90') dxL.push('Circunferencia de cintura elevada (≥ P90).'); }
   var vl = esVelCopy.length ? esVelCopy[esVelCopy.length - 1] : '', vh = /centilo TW[^:]*: (Enlentecida|Baja|Acelerada)/.exec(vl.split(' · ')[0] || '');
-  if (vh) dxL.push('Velocidad de talla ' + (vh[1] === 'Acelerada' ? 'acelerada' : (vh[1] === 'Baja' ? 'baja' : 'enlentecida')) + ' en el último intervalo (interpretar con el estadio de Tanner).');
+  if (vh) dxL.push('Velocidad de talla ' + (vh[1] === 'Acelerada' ? 'acelerada' : (vh[1] === 'Baja' ? 'baja' : 'enlentecida')) + (/^Velocidad anual/.test(vl) ? ' en el control de referencia (~1 año; interpretar con el estadio de Tanner).' : ' en el último intervalo (interpretar con el estadio de Tanner).'));
   var dx = dxL.join('\n') + '\nCódigos de la lista de Acuario a considerar: ' + cod.join('; ') + '.';
   var tt = [];
   if (cl.b === 'Sobrepeso' || cl.b === 'Obesidad') tt.push('Intervención sobre alimentación y actividad física con participación de la familia. Control de peso y talla periódico.');
