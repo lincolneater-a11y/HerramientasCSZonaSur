@@ -1,0 +1,835 @@
+<!doctype html><html lang="es" data-ds="clinic"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Consulta asistida CS 61</title>
+<link rel="icon" type="image/png" href="../icon-192.png"><meta name="theme-color" content="#14304f">
+
+<style>
+/* Layout: cabecera navy; dos columnas (dictado | anamnesis) que apilan en móvil; verde azulado = IA, bordó = alerta, dorado = foco */
+:root{--bg:#f1f5f8;--surf:#fff;--ink:#14243a;--ink2:#4a5d73;--line:#d2dce5;--navy:#14304f;--teal:#0d7a85;--teal-soft:#dff1f2;--bord:#8a1f3d;--bord-soft:#f7e3e8;--gold:#a87615;--gold-soft:#f8efd9;--hf:'Source Serif 4',Georgia,serif;--bf:'Source Sans 3',system-ui,-apple-system,'Segoe UI',sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0c1722;--surf:#13222f;--ink:#e6eef5;--ink2:#9fb2c4;--line:#2a4259;--navy:#0a2038;--teal:#4fc1c9;--teal-soft:#123c42;--bord:#f0869f;--bord-soft:#40202b;--gold:#e0b25a;--gold-soft:#3a3018;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0c1722;--surf:#13222f;--ink:#e6eef5;--ink2:#9fb2c4;--line:#2a4259;--navy:#0a2038;--teal:#4fc1c9;--teal-soft:#123c42;--bord:#f0869f;--bord-soft:#40202b;--gold:#e0b25a;--gold-soft:#3a3018;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 var(--bf);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 40px}
+.wrap{max-width:1180px;margin:0 auto}
+header.top{background:var(--navy);color:#fff;margin:0 calc(-1*max(16px,env(safe-area-inset-left,0px)));padding:14px max(16px,env(safe-area-inset-right,0px)) 14px max(16px,env(safe-area-inset-left,0px))}
+header.top .wrap{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+header.top h1{font:700 1.25rem/1.2 var(--hf);margin:0}
+header.top small{color:#b8cadb;display:block}
+.prof{display:flex;gap:8px;align-items:center}
+.prof label{font-size:.8rem;color:#b8cadb}
+input,textarea,button,select{font:inherit;color:var(--ink)}
+input[type=text]{background:var(--surf);border:1px solid var(--line);border-radius:8px;padding:7px 10px;min-width:0}
+.aviso{margin:16px 0;background:var(--gold-soft);border:1px solid var(--gold);border-radius:10px;padding:10px 14px;font-size:.9rem}
+.grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:20px;align-items:start}
+@media (max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--surf);border:1px solid var(--line);border-radius:12px;padding:16px}
+.card h2{font:700 1.05rem var(--hf);margin:0 0 4px;color:var(--navy)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .card h2{color:var(--teal)}}
+:root[data-theme="dark"] .card h2{color:var(--teal)}
+.sub{color:var(--ink2);font-size:.88rem;margin:0 0 10px}
+textarea{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;resize:vertical;line-height:1.45}
+textarea:focus,input:focus,button:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
+#tx{min-height:300px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
+button{cursor:pointer;border-radius:8px;border:1px solid var(--line);background:var(--surf);padding:8px 14px;font-weight:600}
+button.pri{background:var(--teal);border-color:var(--teal);color:#fff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) button.pri{color:#06232a}}
+:root[data-theme="dark"] button.pri{color:#06232a}
+button.warn{color:var(--bord);border-color:var(--bord)}
+button:disabled{opacity:.55;cursor:default}
+.chk{display:flex;gap:6px;align-items:center;font-size:.88rem;color:var(--ink2)}
+.stat{font-size:.85rem;color:var(--ink2);min-height:1.3em}
+.fld{margin-bottom:14px}
+.fld .hd{display:flex;gap:8px;align-items:baseline;justify-content:space-between;margin-bottom:4px;flex-wrap:wrap}
+.fld label{font-weight:700;font-size:.92rem}
+.tag{font-size:.72rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:99px}
+.tag.ia{background:var(--teal-soft);color:var(--teal)}
+.tag.man{background:var(--gold-soft);color:var(--gold)}
+.fld textarea{min-height:64px}
+.dudas{background:var(--bord-soft);border:1px solid var(--bord);border-radius:10px;padding:10px 14px;margin-bottom:14px}
+.dudas h3{margin:0 0 4px;font-size:.92rem;color:var(--bord)}
+.dudas ul{margin:0;padding-left:20px}
+details.cfg{margin-top:20px}
+details.cfg summary{cursor:pointer;font-weight:700;padding:6px 0}
+.cfg .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}
+.er{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr) auto;gap:6px;margin-bottom:6px;align-items:center}
+.er.g{grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto}
+.er button{padding:6px 10px}
+.priv{font-size:.82rem;color:var(--ink2);margin-top:16px}
+@media(prefers-reduced-motion:no-preference){.fld textarea{transition:border-color .3s,background .3s}.fld.flash textarea{border-color:var(--teal);background:var(--teal-soft)}}
+
+.rec{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+button.red{background:var(--bord);border-color:var(--bord);color:#fff}
+.dot{width:12px;height:12px;border-radius:50%;background:var(--line);display:inline-block}
+.dot.on{background:var(--bord);animation:pul 1.2s infinite}
+@keyframes pul{50%{opacity:.25}}
+@media(prefers-reduced-motion:reduce){.dot.on{animation:none}}
+.timer{font:700 1.1rem var(--bf);font-variant-numeric:tabular-nums}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg label{padding:7px 12px;cursor:pointer;font-weight:600;font-size:.9rem;background:var(--surf)}
+.seg input{position:absolute;opacity:0}
+.seg input:checked+span{color:#fff}
+.seg label:has(input:checked){background:var(--teal);color:#fff}
+.seg label:has(input:focus-visible){outline:2px solid var(--gold);outline-offset:-2px}
+#interim{color:var(--ink2);font-style:italic;min-height:1.4em;font-size:.9rem;margin-top:6px}
+#tx{min-height:260px}
+.hspace{margin-left:auto}.sw-tool{color:#fff;border:1px solid rgba(255,255,255,.4);padding:6px 12px;border-radius:8px;font-size:.8rem;font-weight:700;text-decoration:none;white-space:nowrap}
+.sw-tool:hover,.sw-tool:focus-visible{background:rgba(255,255,255,.14);outline:2px solid #e0b25a;outline-offset:2px}
+.manual{margin-top:12px;background:var(--gold-soft);border:1px solid var(--gold);border-radius:10px;padding:12px}
+.manual textarea{min-height:90px;margin:6px 0}
+.cfgrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin:10px 0}
+.cfgrow label{display:block;font-size:.82rem;color:var(--ink2);margin-bottom:2px}
+.cfgrow input{width:100%}
+
+.tools{position:fixed;top:0;right:0;bottom:0;width:min(920px,100%);background:var(--surf);border-left:1px solid var(--line);z-index:50;display:flex;flex-direction:column;box-shadow:-8px 0 30px rgba(0,0,0,.25)}
+.tools[hidden]{display:none}
+.tools .th{display:flex;gap:8px;align-items:center;justify-content:space-between;background:var(--navy);padding:8px 12px;padding-top:max(8px,env(safe-area-inset-top,0px))}
+.tools .tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tools .tabs button{background:transparent;color:#fff;border-color:rgba(255,255,255,.4);padding:6px 12px}
+.tools .tabs button.on{background:#fff;color:#14304f}
+.tools .th>button{background:transparent;color:#fff;border-color:rgba(255,255,255,.4)}
+.tools iframe{flex:1;border:0;width:100%;background:var(--bg)}
+.tools .note{font-size:.8rem;color:#b8cadb;padding:0 12px 6px;background:var(--navy)}
+.hbtn{color:#fff;border:1px solid rgba(255,255,255,.4);padding:6px 12px;border-radius:8px;font-size:.8rem;font-weight:700;background:transparent;cursor:pointer;white-space:nowrap}
+.hbtn:hover,.hbtn:focus-visible{background:rgba(255,255,255,.14);outline:2px solid #e0b25a;outline-offset:2px}
+.sel{background:var(--surf);border:1px solid var(--line);border-radius:8px;padding:7px 10px;max-width:100%}
+.plan-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.plan-row label{font-weight:700;font-size:.9rem}
+.empty{border:1px dashed var(--line);border-radius:10px;padding:18px;color:var(--ink2);text-align:center}
+.cfg h3{font:700 .95rem var(--hf);margin:14px 0 6px}
+.chips label{display:flex;gap:8px;align-items:flex-start;margin-bottom:4px;font-size:.9rem}
+.cfg textarea{min-height:90px}
+.cfg .sub b{color:var(--ink)}
+.acu{margin-top:14px;border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--bg)}.acu h3{margin:0 0 2px;font:700 1rem var(--hf)}.acu .blk{margin-top:10px}.acu .hd{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;font-weight:700;font-size:.9rem}.acu textarea{min-height:90px}
+</style><script src="../shared/ds.js"></script><link rel="stylesheet" href="../shared/ds.css"></head>
+<body>
+<header class="top"><div class="wrap">
+  <img class="pico pico-h" src="../assets/icons/consulta-asistida.webp" alt="" width="384" height="384" decoding="async"><div><h1>Consulta asistida</h1><small>Centro de Salud N.º 61 Solidaridad · notas de consulta con IA</small></div>
+  <span class="hspace"></span>
+  <button class="hbtn" id="tools-btn" type="button" title="Abrir las otras herramientas sin cortar la grabación">▤ Otras herramientas</button>
+  <a class="sw-tool" id="sw" href="../" title="Volver a elegir la herramienta">⇄ Cambiar herramienta</a>
+  <div class="prof"><label for="prof">Profesional</label><input id="prof" type="text" placeholder="Nombre y apellido" autocomplete="off"></div>
+</div></header>
+<div class="wrap">
+<div class="aviso"><strong>Antes de empezar.</strong> Pida el consentimiento de la persona para grabar. Funciona en <strong>Chrome o Edge</strong>, con internet y permiso de micrófono. No hace falta marcar quién habla: la IA lo deduce del contexto. Para consultar otra herramienta durante la consulta use «Otras herramientas» (no corta la grabación). La nota la revisa y firma el profesional: la IA propone, usted decide.</div>
+<div class="grid">
+  <section class="card" aria-labelledby="h-tx">
+    <h2 id="h-tx">Grabación de la consulta</h2>
+    <p class="sub">La conversación se transcribe mientras habla. Puede corregir el texto antes de generar la nota.</p>
+    <div class="rec">
+      <button class="pri red" id="rec-go">● Grabar</button>
+      <button id="rec-pause" hidden>⏸ Pausar</button>
+      <button id="rec-stop" hidden>■ Terminar</button>
+      <span class="dot" id="dot"></span><span class="timer" id="timer">00:00</span>
+      <label class="chk"><input type="checkbox" id="audio"> Guardar también el audio</label>
+    </div>
+    <textarea id="tx" aria-label="Transcripción de la consulta" placeholder="Al grabar, aquí aparece lo que se dice. También puede escribir o pegar texto."></textarea>
+    <div id="interim" aria-hidden="true"></div>
+    <div id="sug"></div>
+    <div class="row"><label class="sub" for="redact" style="margin:0">Ocultar antes de enviar a la IA</label><input type="text" id="redact" placeholder="Nombre, apellido, lugar (se detectan solos)" style="flex:1;min-width:200px"></div>
+    <div class="row">
+      <button class="pri" id="go">Generar nota</button>
+      <button id="stop" class="warn" hidden>Cancelar</button>
+      <button id="gl-apply">Corregir con el glosario</button>
+      <button id="gl-sug">Revisar términos dudosos</button>
+      <button id="audio-dl" hidden>Descargar audio</button>
+      <button id="clr" class="warn">Nueva consulta</button>
+    </div>
+    <div class="stat" id="stat" role="status" aria-live="polite"></div>
+    <div class="manual" id="man" hidden>
+      <strong>Modo manual</strong>
+      <p class="sub" id="man-why" style="margin:4px 0"></p>
+      <button id="man-copy">1. Copiar indicaciones y texto</button>
+      <p class="sub" style="margin:8px 0 0">2. Péguelas en una conversación de Claude o Gemini y copie la respuesta aquí:</p>
+      <textarea id="man-in" aria-label="Respuesta de la IA" placeholder="Pegue la respuesta completa"></textarea>
+      <button class="pri" id="man-apply">3. Aplicar a la anamnesis</button>
+    </div>
+  </section>
+  <section class="card" aria-labelledby="h-an">
+    <h2 id="h-an">Anamnesis</h2>
+    <div class="plan-row"><label for="plan-sel">Planilla</label><select id="plan-sel" class="sel"></select></div>
+    <p class="sub" id="plan-help"></p>
+    <div id="dudas"></div>
+    <div id="fields"></div>
+    <div class="row">
+      <button class="pri" id="copy">Copiar nota</button>
+      <button id="save">Guardar como archivo .txt</button>
+      <button id="acu-go">Preparar para Acuario</button>
+    </div>
+    <div class="stat" id="stat2" role="status" aria-live="polite"></div>
+    <div id="acu"></div>
+  </section>
+</div>
+
+<details class="cfg" id="cfg"><summary>Conexión, planillas y glosario</summary>
+<div class="card">
+  <h3 style="margin-top:0">Conexión</h3>
+  <div class="cfgrow"><div><label for="api-url">Dirección del script (URL /exec)</label><input type="text" id="api-url" placeholder="https://script.google.com/macros/s/…/exec"></div><div><label for="api-key">Clave</label><input type="text" id="api-key" autocomplete="off"></div></div>
+  <p class="sub">Si ya configuró la planilla en las otras herramientas, estos datos se completan solos.</p>
+
+  <h3>Mis planillas de anamnesis</h3>
+  <p class="sub">La planilla define los bloques de la nota. <b>Libre</b>: la IA decide los bloques según la conversación. <b>Mis planillas</b>: use la estructura de su propia ficha de entrevista; puede crear varias (primera consulta, control, embarazo…).</p>
+  <div id="plan-ed"></div>
+  <div class="row"><input type="text" id="plan-name" placeholder="Nombre de la planilla" aria-label="Nombre de la planilla"><button id="plan-save">Guardar bloques actuales como planilla</button><button id="plan-del" class="warn">Eliminar esta planilla</button></div>
+  <h3>Crear una planilla desde mi ficha</h3>
+  <p class="sub">Pegue el texto de su planilla o entrevista (un campo por línea) o suba un archivo <b>.txt, .docx o .xlsx</b>. Cada línea pasa a ser un bloque; lo que va después de «:» queda como indicación para la IA.</p>
+  <textarea id="imp-text" aria-label="Texto de la planilla" placeholder="Motivo de consulta:&#10;Antecedentes personales:&#10;Antecedentes familiares:&#10;Hábitos alimentarios (comidas, horarios):&#10;Plan:"></textarea>
+  <div class="row"><input type="file" id="imp-file" accept=".txt,.csv,.docx,.xlsx" aria-label="Subir planilla"><button id="imp-local">Crear bloques</button><button id="imp-ai">Crear bloques con IA</button></div>
+
+  <h3>Vocabulario por especialidad</h3>
+  <p class="sub">Los términos correctos ayudan a la IA a reconocer palabras técnicas mal transcriptas. Marque las especialidades que usa y agregue las suyas.</p>
+  <div class="chips" id="voc-presets"></div>
+  <label class="sub" for="voc-cus" style="display:block;margin-top:8px"><b>Mis términos</b> (separados por coma o línea)</label>
+  <textarea id="voc-cus" placeholder="Ej.: sarcopenia, bioimpedancia, índice de Quetelet"></textarea>
+  <div class="row"><input type="file" id="voc-file" accept=".txt,.csv,.docx,.xlsx" aria-label="Subir glosario"><button id="voc-add">Agregar archivo o texto pegado</button></div>
+  <p class="sub">En un archivo, las líneas con dos columnas o con «→» («ache te a → HTA») se agregan como corrección directa; las demás, como vocabulario.</p>
+
+  <h3>Banco de términos (carga masiva)</h3>
+  <p class="sub">Suba uno o varios glosarios grandes (.txt, .csv, .docx o .xlsx; un término por línea o por celda). No hay un límite práctico: a la IA se le envían <b>sólo los términos relacionados con cada consulta</b>, así que conviene cargar todo lo que tenga (diccionarios médicos, listas de fármacos, vademécum, siglas del servicio). Las líneas «escuchado → correcto» se guardan como corrección directa.</p>
+  <div class="row"><input type="file" id="bank-file" multiple accept=".txt,.csv,.docx,.xlsx" aria-label="Subir términos al banco"><button id="bank-add">Agregar al banco</button></div>
+  <p class="sub" id="bank-info"></p>
+  <div class="row"><button id="gl-base">Agregar siglas habituales (ache te a, ele de ele…)</button><button id="bank-exp">Exportar banco y correcciones</button><button id="bank-clr" class="warn">Vaciar banco</button></div>
+  <h3>Banco compartido del centro</h3>
+  <p class="sub">Todo el equipo puede usar los mismos términos y correcciones. <b>Se descargan solos cuando hay internet y quedan guardados en el dispositivo: la consulta funciona igual sin conexión.</b> Al compartir se envían sólo términos y correcciones (nunca el texto de las consultas); no incluya nombres de personas.</p>
+  <div class="row"><button id="sh-sync">Actualizar desde el centro</button><button id="sh-send">Compartir mis términos con el centro</button></div>
+  <p class="sub" id="sh-info"></p>
+  <h3>Correcciones directas (escuchado → correcto)</h3>
+  <div id="gl-ed"></div><div class="row"><button id="gl-add">+ Corrección</button></div>
+  <h3>Modelo de bloques de la planilla seleccionada</h3>
+  <div id="tpl-ed"></div><div class="row" id="tpl-btns"><button id="tpl-add">+ Bloque</button></div>
+</div></details>
+<p class="priv">Datos de pacientes: la transcripción la realiza el servicio de voz del navegador (Google, en Chrome/Edge) y la nota la genera una IA a través de su script. No escriba nombre ni DNI. Nada se guarda en un servidor propio: sólo el borrador y su configuración quedan en este navegador. Pegue la nota final en la historia clínica del centro. Marco: Leyes 25.326 y 26.529.</p>
+</div>
+<aside class="tools" id="tools" hidden aria-label="Otras herramientas">
+  <div class="th"><div class="tabs"><button type="button" data-u="../nutricion/" class="on">Nutrición</button><button type="button" data-u="../registro/">Registro cardiovascular</button><button type="button" data-u="../calculadora/">Calculadora antropométrica</button><button type="button" data-u="../recursos/">Recursos</button><button type="button" data-u="../vacunas/">Vacunas</button><button type="button" data-u="../crecimiento/">Crecimiento y desarrollo</button><button type="button" data-u="../embarazo/">Embarazo</button></div><button type="button" id="tools-x">Cerrar ✕</button></div>
+  <div class="note">La grabación sigue activa mientras usa estas herramientas.</div>
+  <iframe id="tf0" title="Herramientas de nutrición"></iframe><iframe id="tf1" title="Registro cardiovascular" hidden></iframe><iframe id="tf2" title="Calculadora antropométrica" hidden></iframe><iframe id="tf3" title="Recursos para la comunidad" hidden></iframe><iframe id="tf4" title="Calendario de vacunación" hidden></iframe><iframe id="tf5" title="Crecimiento y desarrollo" hidden></iframe><iframe id="tf6" title="Embarazo y control prenatal" hidden></iframe>
+</aside>
+<script src="banco.js"></script>
+<script>(function(){
+var $=function(i){return document.getElementById(i)};
+function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function rx(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}
+function slug(s){return String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'').slice(0,40)||('b'+Date.now().toString(36))}
+
+var LIBRE='Libre (la IA ordena los bloques)',BASEN='Modelo base (6 bloques)';
+var BASE=[
+ {id:'motivo',label:'Motivo de la visita',hint:'Por qué consulta y contexto, en un párrafo breve',fmt:'p'},
+ {id:'historia',label:'Historia y factores de riesgo',hint:'Antecedentes, síntomas, hábitos, alimentación, actividad física, un dato por línea',fmt:'l'},
+ {id:'medic',label:'Medicación y suplementos',hint:'Nombre y dosis si se mencionan',fmt:'l'},
+ {id:'antro',label:'Antropometría y datos objetivos',hint:'Peso, talla, circunferencia, TA, laboratorio',fmt:'l'},
+ {id:'eval',label:'Evaluación y diagnóstico',hint:'Valoración nutricional dicha por el profesional, en un párrafo',fmt:'p'},
+ {id:'reco',label:'Recomendaciones',hint:'Sólo lo indicado en la consulta, una pauta por línea',fmt:'l'}
+];
+var PRESETS=[
+ {id:'nut',name:'Nutrición clínica general',t:['IMC','índice de masa corporal','circunferencia de cintura','pliegue tricipital','bioimpedancia','masa magra','masa grasa','sarcopenia','desnutrición','sobrepeso','obesidad','requerimientos nutricionales','recordatorio de 24 horas','frecuencia de consumo','fraccionamiento','hidratos de carbono','proteínas','lípidos','fibra','índice glucémico','suplemento nutricional oral','VCT','valor calórico total','plan de alimentación','adherencia','saciedad','ayuno intermitente','dieta hipocalórica','dieta hiposódica','kilocalorías','gramos','micronutrientes','vitamina D','vitamina B12','hierro','calcio','zinc']},
+ {id:'cardio',name:'Cardiometabólico',t:['hipertensión arterial','HTA','diabetes tipo 2','DBT2','prediabetes','glucemia en ayunas','hemoglobina glicosilada','HbA1c','insulinorresistencia','HOMA-IR','dislipemia','colesterol total','LDL','HDL','triglicéridos','síndrome metabólico','FINDRISC','riesgo cardiovascular','enalapril','losartán','metformina','atorvastatina','amlodipina','insulina NPH','hígado graso','esteatosis hepática','presión arterial','ECV']},
+ {id:'ped',name:'Pediatría y crecimiento',t:['percentil','puntaje Z','peso para la edad','talla para la edad','IMC para la edad','perímetro cefálico','lactancia materna exclusiva','alimentación complementaria','BLW','fórmula infantil','velocidad de crecimiento','talla blanco genético','desnutrición aguda','retraso de talla','bajo peso','Tanner','pubertad','recién nacido','lactante','preescolar','escolar','adolescente']},
+ {id:'emb',name:'Embarazo y lactancia',t:['embarazada','gestante','semana de gestación','ganancia de peso gestacional','IMC pregestacional','diabetes gestacional','preeclampsia','ácido fólico','hierro','anemia','náuseas','hiperémesis','puerperio','lactancia','suplemento con hierro','curva de tolerancia a la glucosa','PTOG','amenorrea','FUM','fecha probable de parto']},
+ {id:'dig',name:'Digestivo',t:['celiaquía','enfermedad celíaca','sin TACC','SII','síndrome de intestino irritable','enfermedad de Crohn','colitis ulcerosa','reflujo gastroesofágico','ERGE','dieta FODMAP','disfagia','constipación','distensión abdominal','gastritis','Helicobacter pylori','intolerancia a la lactosa','diarrea','colon irritable','pancreatitis','litiasis biliar','esofagitis','disbiosis']},
+ {id:'ren',name:'Renal y hepático',t:['enfermedad renal crónica','ERC','filtrado glomerular','hemodiálisis','diálisis peritoneal','potasio','fósforo','creatinina','urea','proteinuria','síndrome nefrótico','cirrosis','encefalopatía hepática','ascitis','balance hídrico','restricción de sodio']},
+ {id:'onc',name:'Oncología y soporte nutricional',t:['caquexia','desnutrición relacionada con la enfermedad','nutrición enteral','nutrición parenteral','sonda nasogástrica','SNG','gastrostomía','suplemento oral','MUST','valoración global subjetiva','VGS','quimioterapia','radioterapia','mucositis','xerostomía','disgeusia','pérdida de peso involuntaria','anorexia','hiporexia','tumor','cáncer']},
+ {id:'arg',name:'Alimentos y costumbres de Salta / NOA',t:['mate cocido','yerba mate','facturas','criollitos','milanesa','empanadas salteñas','locro','humita','tamales','quinoa','chía','polenta','zapallo','anco','choclo','papa andina','maíz','charqui','dulce de leche','membrillo','sopa','guiso','fideos','arroz','pan francés','gaseosa','jugo en polvo','asado','chorizo','mortadela','sándwich de miga','alfajor','pochoclo','harina de maíz','cabrito','llama','algarroba','tuna','cayote']}
+];
+if(window.CS61B)CS61B.presets.forEach(function(p){if(!PRESETS.some(function(q){return q.id===p.id}))PRESETS.push(p)});
+var S={prof:'',plans:[],cur:LIBRE,auto:[],gl:[],vsel:['nut','arg'],vcus:'',vals:{},dudas:[]};
+var busy=null;
+
+/* ---------- almacenamiento ---------- */
+function pk(){return 'cs61_cons2_'+(S.prof||'').trim().toLowerCase().replace(/\s+/g,'_')}
+function defGl(){return [{a:'ache te a',b:'HTA'},{a:'de be te dos',b:'DBT2'},{a:'i eme ce',b:'IMC'},{a:'hemoglobina glicosilada',b:'HbA1c'},{a:'colesterol malo',b:'LDL'}]}
+function loadCfg(){
+  S.plans=[];S.cur=LIBRE;S.gl=defGl();S.vsel=['nut','arg'];S.vcus='';loadBank();
+  var j=lsGet(pk());
+  if(j){try{var o=JSON.parse(j);if(o.plans)S.plans=o.plans;if(o.cur)S.cur=o.cur;if(o.gl)S.gl=o.gl;if(o.vsel)S.vsel=o.vsel;if(typeof o.vcus==='string')S.vcus=o.vcus}catch(e){}}
+  if(S.cur!==LIBRE&&S.cur!==BASEN&&!S.plans.some(function(p){return p.name===S.cur}))S.cur=LIBRE;
+}
+function saveCfg(){IDX=null;lsSet(pk(),JSON.stringify({plans:S.plans,cur:S.cur,gl:S.gl,vsel:S.vsel,vcus:S.vcus}))}
+function saveDraft(){lsSet('cs61_cons2_draft',JSON.stringify({tx:$('tx').value,vals:S.vals,dudas:S.dudas,auto:S.auto}))}
+function userPlan(){return S.plans.filter(function(p){return p.name===S.cur})[0]||null}
+function tpl(){if(S.cur===LIBRE)return S.auto;if(S.cur===BASEN)return BASE;var p=userPlan();return p?p.tpl:S.auto}
+
+/* ---------- anamnesis (bloques) ---------- */
+function planOptions(){
+  var h='<option value="'+esc(LIBRE)+'">'+esc(LIBRE)+'</option><option value="'+esc(BASEN)+'">'+esc(BASEN)+'</option>';
+  S.plans.forEach(function(p){h+='<option value="'+esc(p.name)+'">'+esc(p.name)+'</option>'});
+  $('plan-sel').innerHTML=h;$('plan-sel').value=S.cur;
+  $('plan-help').textContent=S.cur===LIBRE?'La IA decide los bloques según lo conversado. Si le gusta el resultado, puede guardarlo como planilla propia (en «Conexión, planillas y glosario»).':'Los bloques salen de esta planilla. Lo que usted edita queda bloqueado y la IA no lo pisa.';
+}
+function renderFields(flash){
+  var T=tpl(),h='';
+  if(!T.length){h='<div class="empty">Los bloques de la anamnesis aparecerán aquí cuando genere la nota.</div>'}
+  T.forEach(function(f){
+    var v=S.vals[f.id]||{t:'',src:''};
+    var tag=v.src==='man'?'<span class="tag man">Editado</span>':(v.src==='ia'&&v.t?'<span class="tag ia">IA</span>':'');
+    h+='<div class="fld'+(flash&&flash[f.id]?' flash':'')+'"><div class="hd"><label for="f_'+f.id+'">'+esc(f.label)+'</label>'+tag+'</div><textarea id="f_'+f.id+'" rows="2" placeholder="'+esc(f.hint||'')+'" data-id="'+f.id+'" data-fmt="'+(f.fmt||'p')+'">'+esc(v.t)+'</textarea></div>';
+  });
+  $('fields').innerHTML=h;
+  Array.prototype.forEach.call($('fields').querySelectorAll('textarea'),function(t){
+    t.style.height='auto';t.style.height=Math.max(64,t.scrollHeight+2)+'px';
+    t.addEventListener('keydown',function(e){
+      if(t.getAttribute('data-fmt')!=='l'||e.key!=='Enter'||e.shiftKey)return;
+      var v=t.value,pos=t.selectionStart,ls=v.lastIndexOf('\n',pos-1)+1,line=v.slice(ls,pos);
+      if(!/^\s*[-•]\s/.test(line)&&v.length)return;
+      e.preventDefault();
+      if(/^\s*[-•]\s*$/.test(line)){t.value=v.slice(0,ls)+v.slice(pos);t.selectionStart=t.selectionEnd=ls}
+      else{t.value=v.slice(0,pos)+'\n- '+v.slice(t.selectionEnd);t.selectionStart=t.selectionEnd=pos+3}
+      t.dispatchEvent(new Event('input'));
+    });
+    t.addEventListener('focus',function(){if(t.getAttribute('data-fmt')==='l'&&!t.value){t.value='- ';t.selectionStart=t.selectionEnd=2}});
+    t.addEventListener('blur',function(){if(t.getAttribute('data-fmt')==='l'&&/^\s*-\s*$/.test(t.value)){t.value='';t.dispatchEvent(new Event('input'))}});
+    t.addEventListener('input',function(){
+      var id=t.getAttribute('data-id');S.vals[id]={t:t.value,src:t.value?'man':''};
+      var hd=t.parentNode.querySelector('.hd');var old=hd.querySelector('.tag');if(old)old.remove();
+      if(t.value){var s=document.createElement('span');s.className='tag man';s.textContent='Editado';hd.appendChild(s)}
+      t.style.height='auto';t.style.height=Math.max(64,t.scrollHeight+2)+'px';saveDraft();
+    });
+  });
+  var d=S.dudas||[];
+  $('dudas').innerHTML=d.length?'<div class="dudas"><h3>Para confirmar con la persona</h3><ul>'+d.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul></div>':'';
+  if(flash)setTimeout(function(){Array.prototype.forEach.call(document.querySelectorAll('.fld.flash'),function(e){e.classList.remove('flash')})},1400);
+}
+$('plan-sel').addEventListener('change',function(){S.cur=$('plan-sel').value;saveCfg();planOptions();renderFields();renderCfg()});
+
+/* ---------- configuración: planillas, bloques, glosario ---------- */
+function guessFmt(l){return /(antecedente|recomendaci|indicaci|medicaci|h[aá]bito|plan|objetivo|s[ií]ntoma|estudio|laboratorio|suplement|alergia|intolerancia|datos)/i.test(l)?'l':'p'}
+function renderCfg(){
+  var up=userPlan(),h='';
+  if(up){
+    up.tpl.forEach(function(f,i){
+      h+='<div class="er"><input type="text" data-k="label" data-i="'+i+'" value="'+esc(f.label)+'" aria-label="Nombre del bloque"><input type="text" data-k="hint" data-i="'+i+'" value="'+esc(f.hint||'')+'" aria-label="Qué debe contener"><span><select class="sel" data-fmt="'+i+'" aria-label="Formato"><option value="p"'+(f.fmt==='l'?'':' selected')+'>Párrafo</option><option value="l"'+(f.fmt==='l'?' selected':'')+'>Lista</option></select> <button data-up="'+i+'" aria-label="Subir">↑</button> <button data-del="'+i+'" class="warn" aria-label="Quitar">×</button></span></div>';
+    });
+  }else h='<p class="sub">Esta planilla no se edita. Use «Guardar bloques actuales como planilla» para crear una propia a partir de ella.</p>';
+  $('tpl-ed').innerHTML=h;$('tpl-btns').hidden=!up;$('plan-del').hidden=!up;
+  var g='';
+  S.gl.forEach(function(x,i){g+='<div class="er g"><input type="text" data-ga="'+i+'" value="'+esc(x.a)+'" aria-label="Término escuchado"><input type="text" data-gb="'+i+'" value="'+esc(x.b)+'" aria-label="Forma correcta"><button data-gdel="'+i+'" class="warn" aria-label="Quitar">×</button></div>'});
+  $('gl-ed').innerHTML=g;
+  var v='';PRESETS.forEach(function(p){v+='<label><input type="checkbox" data-pre="'+p.id+'"'+(S.vsel.indexOf(p.id)>=0?' checked':'')+'><span><b>'+esc(p.name)+'</b> · '+p.t.length+' términos</span></label>'});
+  $('sh-info').textContent=SH.ts?('Banco del centro en este dispositivo: '+SH.t.length+' términos y '+SH.c.length+' correcciones (actualizado '+new Date(SH.ts).toLocaleString('es-AR')+').'):'Todavía no se descargó el banco del centro.';
+  $('voc-presets').innerHTML=v;$('voc-cus').value=S.vcus;$('bank-info').textContent=BANK.length?BANK.length+' términos en el banco de este dispositivo.':'El banco está vacío.';
+}
+$('tpl-ed').addEventListener('input',function(e){var up=userPlan(),t=e.target,i=t.getAttribute('data-i');if(!up||i==null)return;up.tpl[i][t.getAttribute('data-k')]=t.value;saveCfg()});
+$('tpl-ed').addEventListener('change',function(e){var up=userPlan(),t=e.target,i=t.getAttribute('data-fmt');if(up&&i!=null){up.tpl[i].fmt=t.value;saveCfg()}renderFields()});
+$('tpl-ed').addEventListener('click',function(e){
+  var up=userPlan(),t=e.target.closest('button');if(!up||!t)return;
+  var u=t.getAttribute('data-up'),d=t.getAttribute('data-del');
+  if(u!=null&&+u>0){var i=+u,x=up.tpl[i];up.tpl[i]=up.tpl[i-1];up.tpl[i-1]=x}
+  if(d!=null)up.tpl.splice(+d,1);
+  saveCfg();renderCfg();renderFields();
+});
+$('tpl-add').onclick=function(){var up=userPlan();if(!up)return;up.tpl.push({id:'c'+Date.now().toString(36),label:'Nuevo bloque',hint:'',fmt:'p'});saveCfg();renderCfg();renderFields()};
+function newPlan(name,tp){
+  name=(name||'').trim()||'Mi planilla';var base=name,n=2;
+  while(name===LIBRE||name===BASEN||S.plans.some(function(p){return p.name===name}))name=base+' ('+(n++)+')';
+  S.plans.push({name:name,tpl:tp});S.cur=name;saveCfg();planOptions();renderCfg();renderFields();$('plan-name').value='';
+  return name;
+}
+$('plan-save').onclick=function(){
+  var T=tpl();if(!T.length){$('stat').textContent='Todavía no hay bloques para guardar. Genere una nota o cree una planilla desde su ficha.';return}
+  newPlan($('plan-name').value||'Mi planilla',T.map(function(f){return {id:f.id,label:f.label,hint:f.hint||'',fmt:f.fmt||'p'}}));
+  $('stat').textContent='Planilla guardada y seleccionada.';
+};
+$('plan-del').onclick=function(){
+  if(!$('plan-del').dataset.sure){$('plan-del').dataset.sure='1';$('plan-del').textContent='Confirmar: eliminar';setTimeout(function(){delete $('plan-del').dataset.sure;$('plan-del').textContent='Eliminar esta planilla'},4000);return}
+  delete $('plan-del').dataset.sure;$('plan-del').textContent='Eliminar esta planilla';
+  S.plans=S.plans.filter(function(p){return p.name!==S.cur});S.cur=LIBRE;saveCfg();planOptions();renderCfg();renderFields();
+};
+$('gl-ed').addEventListener('input',function(e){var t=e.target,a=t.getAttribute('data-ga'),b=t.getAttribute('data-gb');if(a!=null)S.gl[a].a=t.value;if(b!=null)S.gl[b].b=t.value;saveCfg()});
+$('gl-ed').addEventListener('click',function(e){var t=e.target.closest('button');if(t&&t.getAttribute('data-gdel')!=null){S.gl.splice(+t.getAttribute('data-gdel'),1);saveCfg();renderCfg()}});
+$('gl-add').onclick=function(){S.gl.push({a:'',b:''});saveCfg();renderCfg()};
+$('voc-presets').addEventListener('change',function(e){var id=e.target.getAttribute('data-pre');if(!id)return;S.vsel=S.vsel.filter(function(x){return x!==id});if(e.target.checked)S.vsel.push(id);saveCfg()});
+$('voc-cus').addEventListener('change',function(){S.vcus=$('voc-cus').value;saveCfg()});
+
+/* ---------- lectura de archivos (txt, docx, xlsx) ---------- */
+function loadScript(u){return new Promise(function(ok,no){var s=document.createElement('script');s.src=u;s.onload=ok;s.onerror=function(){no(new Error('lib'))};document.head.appendChild(s)})}
+async function fileRows(file){
+  var n=file.name.toLowerCase();
+  if(/\.(txt|csv)$/.test(n)){var t=await file.text();return t.split(/\r?\n/).map(function(l){return [l]})}
+  if(/\.docx$/.test(n)){
+    if(!window.JSZip)await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
+    var z=await JSZip.loadAsync(await file.arrayBuffer());var xml=await z.file('word/document.xml').async('string');
+    var rows=[];xml.split(/<\/w:p>/).forEach(function(p){var t=(p.match(/<w:t[^>]*>[^<]*<\/w:t>/g)||[]).map(function(x){return x.replace(/<[^>]+>/g,'')}).join('');rows.push([t.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>')])});
+    return rows;
+  }
+  if(/\.xlsx$/.test(n)){
+    if(!window.XLSX)await loadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js');
+    var wb=XLSX.read(await file.arrayBuffer(),{type:'array'});
+    return XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:''}).map(function(r){return r.map(function(c){return String(c).trim()}).filter(Boolean)});
+  }
+  throw new Error('tipo');
+}
+function rowsToText(rows){return rows.map(function(r){return r.join(' : ')}).join('\n')}
+$('imp-file').addEventListener('change',async function(){
+  var f=this.files[0];if(!f)return;
+  try{$('imp-text').value=rowsToText(await fileRows(f));if(!$('plan-name').value)$('plan-name').value=f.name.replace(/\.[^.]+$/,'');$('stat').textContent='Archivo leído. Revise el texto y pulse «Crear bloques».'}
+  catch(e){$('stat').textContent='No se pudo leer el archivo. Use .txt, .docx o .xlsx, o pegue el texto.'}
+});
+function parseBlocks(text){
+  var out=[],seen={};
+  text.split(/\r?\n/).forEach(function(l){
+    l=l.replace(/^\s*(?:[-•*·]|\d+[.)])\s*/,'').trim();if(l.length<2)return;
+    var m=/^([^:：]{2,80}?)\s*[:：]\s*(.*)$/.exec(l),label=m?m[1]:l,hint=m?m[2].replace(/[_.\s]+$/,'').trim():'';
+    label=label.replace(/[?¿_]+/g,'').trim();if(!label||label.length>80)return;
+    var id=slug(label);if(seen[id])return;seen[id]=1;
+    out.push({id:id,label:label.charAt(0).toUpperCase()+label.slice(1),hint:hint,fmt:guessFmt(label)});
+  });
+  return out;
+}
+$('imp-local').onclick=function(){
+  var b=parseBlocks($('imp-text').value);
+  if(!b.length){$('stat').textContent='No se encontraron campos. Escriba o pegue uno por línea.';return}
+  var nm=newPlan($('plan-name').value||'Mi planilla',b);$('stat').textContent='Planilla «'+nm+'» creada con '+b.length+' bloques. Revise sus nombres y formato abajo.';
+};
+$('imp-ai').onclick=async function(){
+  var t=$('imp-text').value.trim();if(t.length<10){$('stat').textContent='Pegue primero el texto de su planilla.';return}
+  var prompt='Del siguiente texto de una planilla de anamnesis o entrevista de nutrición, extraé los bloques (secciones o campos) en el orden en que aparecen. Cada bloque: "label" (nombre claro y corto), "hint" (qué información incluye, breve; vacío si no hay), "fmt" ("l" si conviene lista de ítems, "p" si conviene un párrafo). Agrupá campos muy chicos en un solo bloque cuando sea natural. No inventes bloques que no estén en el texto. Respondé SOLO JSON: {"bloques":[{"label":"","hint":"","fmt":"p"}]}\nTEXTO:\n"""\n'+t.slice(0,20000)+'\n"""';
+  try{
+    var r=parseJ(await callIA(prompt,null,'Armando los bloques…'));
+    var b=(r.bloques||[]).filter(function(x){return x&&x.label}).map(function(x){return {id:slug(x.label),label:String(x.label),hint:String(x.hint||''),fmt:x.fmt==='l'?'l':'p'}});
+    if(!b.length)throw new Error('vacio');
+    var nm=newPlan($('plan-name').value||'Mi planilla',b);$('stat').textContent='Planilla «'+nm+'» creada con '+b.length+' bloques.';
+  }catch(e){$('stat').textContent=(e&&e.msg)||'No se pudieron crear los bloques con IA. Pruebe «Crear bloques» (sin IA).'}
+};
+$('voc-add').onclick=async function(){
+  var f=$('voc-file').files[0],rows=[];
+  try{if(f)rows=await fileRows(f)}catch(e){$('stat').textContent='No se pudo leer el archivo.';return}
+  var extra=$('voc-cus').value;rows.forEach(function(r){
+    if(r.length>=2&&r[0]&&r[1]){S.gl.push({a:r[0],b:r[1]});return}
+    var l=r[0]||'';var m=/^(.+?)\s*(?:→|->|=>|;|=)\s*(.+)$/.exec(l);
+    if(m){S.gl.push({a:m[1].trim(),b:m[2].trim()});return}
+    if(l.trim())extra+=(extra?'\n':'')+l.trim();
+  });
+  S.vcus=extra;saveCfg();renderCfg();$('voc-file').value='';$('stat').textContent='Glosario actualizado.';
+};
+
+/* ---------- glosario y prompt ---------- */
+function glAll(){var seen={},o=[];S.gl.concat(SH.c).forEach(function(x){if(x.a&&x.b){var k=x.a.toLowerCase();if(!seen[k]){seen[k]=1;o.push(x)}}});return o.sort(function(a,b){return b.a.length-a.a.length})}
+function applyGl(txt){
+  glAll().forEach(function(x){if(x.a&&x.b){txt=txt.replace(new RegExp('(^|[^\\p{L}])'+rx(x.a)+'(?![\\p{L}])','giu'),function(m,p){return p+x.b})}});
+  return txt;
+}
+$('gl-apply').onclick=function(){var n=applyGl($('tx').value);var c=n!==$('tx').value;$('tx').value=n;saveDraft();$('stat').textContent=c?'Glosario aplicado al texto.':'No había términos del glosario para corregir.'};
+function vocab(){
+  var set={},out=[];
+  S.vsel.forEach(function(id){PRESETS.forEach(function(p){if(p.id===id)p.t.forEach(function(x){if(!set[x]){set[x]=1;out.push(x)}})})});
+  S.vcus.split(/[\n,;]+/).forEach(function(x){x=x.trim();if(x&&!set[x]){set[x]=1;out.push(x)}});
+  return out.slice(0,1500);
+}
+
+/* ---------- banco de términos y selección por parecido ---------- */
+var BANK=[],IDX=null,SH={t:[],c:[],ts:0};
+function loadShared(){try{var o=JSON.parse(lsGet('cs61_cons2_shared')||'null');if(o&&o.t)SH=o}catch(e){}IDX=null}
+function bankKey(){return pk()+'_bank'}
+function loadBank(){var j=lsGet(bankKey());BANK=j?j.split('\n').filter(Boolean):[];IDX=null}
+function saveBank(){try{localStorage.setItem(bankKey(),BANK.join('\n'));IDX=null;return true}catch(e){return false}}
+function nrm(w){return String(w).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9ñ]/g,'')}
+function phon(w){
+  w=String(w).toLowerCase().replace(/ñ/g,'#').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/#/g,'ñ').replace(/[^a-zñ0-9]/g,'');
+  w=w.replace(/ll/g,'y').replace(/qu/g,'k').replace(/gu([ei])/g,'g$1').replace(/c([ei])/g,'s$1').replace(/g([ei])/g,'j$1').replace(/z/g,'s').replace(/c/g,'k').replace(/v/g,'b').replace(/h/g,'').replace(/w/g,'u').replace(/x/g,'ks').replace(/y/g,'i').replace(/ps/g,'s').replace(/([a-zñ0-9])\1+/g,'$1');
+  return w;
+}
+function lev1(a,b){ // distancia de edición <= 1
+  if(a===b)return true;var la=a.length,lb=b.length;if(Math.abs(la-lb)>1)return false;
+  var i=0,j=0,d=0;while(i<la&&j<lb){if(a[i]===b[j]){i++;j++;continue}d++;if(d>1)return false;if(la>lb)i++;else if(lb>la)j++;else{i++;j++}}
+  return d+(la-i)+(lb-j)<=1;
+}
+function allTerms(){
+  var seen={},out=[];
+  function add(t){t=String(t).trim();if(!t)return;var k=t.toLowerCase();if(seen[k])return;seen[k]=1;out.push(t)}
+  PRESETS.forEach(function(p){p.t.forEach(add)});
+  S.vcus.split(/[\n,;]+/).forEach(add);BANK.forEach(add);SH.t.forEach(add);
+  return out;
+}
+function buildIdx(){
+  var terms=allTerms(),ex={},ph={},fl={},known={};
+  terms.forEach(function(t){
+    t.split(/[\s\/\-]+/).forEach(function(w){
+      var n=nrm(w);if(n.length<4)return;known[n]=1;
+      (ex[n]=ex[n]||[]).push(t);
+      var k=phon(w);(ph[k]=ph[k]||[]).push([t,w,n]);
+      var c=n.charAt(0);(fl[c]=fl[c]||{})[n]=1;
+    });
+  });
+  var f2={};Object.keys(fl).forEach(function(c){f2[c]=Object.keys(fl[c])});
+  IDX={terms:terms,ex:ex,ph:ph,fl:f2,known:known};
+}
+function toks(txt){
+  var m=String(txt).match(/[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9]{4,}/g)||[],seen={},o=[];
+  m.forEach(function(w){var n=nrm(w);if(n.length>=4&&!seen[n]){seen[n]=1;o.push([w,n])}});return o;
+}
+function vocabFor(txt){
+  if(!IDX)buildIdx();
+  var set={},out=[];
+  function add(t){var k=t.toLowerCase();if(!set[k]){set[k]=1;out.push(t)}}
+  S.vsel.forEach(function(id){PRESETS.forEach(function(p){if(p.id===id)p.t.forEach(add)})});
+  S.vcus.split(/[\n,;]+/).forEach(function(x){x=x.trim();if(x)add(x)});
+  var base=out.slice(0,1200);out=base;set={};base.forEach(function(t){set[t.toLowerCase()]=1});
+  var rel=[];
+  toks(txt).forEach(function(tk){
+    var w=tk[1],hit=[];
+    (IDX.ex[w]||[]).forEach(function(t){hit.push(t)});
+    (IDX.ph[phon(w)]||[]).forEach(function(x){hit.push(x[0])});
+    if(w.length>=5){(IDX.fl[w.charAt(0)]||[]).forEach(function(c){if(c!==w&&lev1(w,c))(IDX.ex[c]||[]).forEach(function(t){hit.push(t)})})}
+    hit.slice(0,6).forEach(function(t){if(!set[t.toLowerCase()]){set[t.toLowerCase()]=1;rel.push(t)}});
+  });
+  return out.concat(rel.slice(0,500));
+}
+function suggestions(txt){
+  if(!IDX)buildIdx();
+  var res=[],seen={};
+  toks(txt).forEach(function(tk){
+    var w=tk[0],n=tk[1];if(n.length<5||IDX.known[n]||/^[0-9]+$/.test(n))return;
+    var cand=null,c1=IDX.ph[phon(w)];
+    if(c1){for(var i=0;i<c1.length;i++){if(c1[i][2]!==n&&c1[i][2].length>=5){cand=c1[i];break}}}
+    if(!cand&&n.length>=7){var arr=IDX.fl[n.charAt(0)]||[];for(var j=0;j<arr.length;j++){if(lev1(n,arr[j])&&arr[j]!==n){cand=[null,(IDX.ex[arr[j]]||[arr[j]])[0].split(/[\s\/\-]+/).filter(function(x){return nrm(x)===arr[j]})[0]||arr[j],arr[j]];break}}}
+    if(cand&&!seen[n]){seen[n]=1;res.push({a:w,b:cand[1]})}
+  });
+  return res.slice(0,40);
+}
+$('gl-sug').onclick=function(){
+  var sg=suggestions($('tx').value),box=$('sug');
+  if(!sg.length){box.innerHTML='<p class="sub">No se encontraron términos dudosos con lo que hay en el vocabulario y el banco.</p>';return}
+  box.innerHTML='<div class="dudas"><h3>Posibles errores de transcripción</h3><p class="sub">Palabras que suenan o se escriben casi igual que un término del vocabulario. Aplique sólo las que correspondan.</p><ul>'+sg.map(function(x,i){return '<li><b>'+esc(x.a)+'</b> → <b>'+esc(x.b)+'</b> <button data-sg="'+i+'">Aplicar</button></li>'}).join('')+'</ul></div>';
+  box._sg=sg;
+};
+$('sug').addEventListener('click',function(e){
+  var b=e.target.closest('button[data-sg]');if(!b)return;var x=$('sug')._sg[+b.getAttribute('data-sg')];
+  $('tx').value=$('tx').value.replace(new RegExp('(^|[^\\p{L}])'+rx(x.a)+'(?![\\p{L}])','giu'),function(m,p){return p+x.b});saveDraft();b.textContent='Listo ✓';b.disabled=true;
+});
+$('bank-add').onclick=async function(){
+  var fs=$('bank-file').files;if(!fs.length){$('stat').textContent='Elija uno o más archivos.';return}
+  var set={};BANK.forEach(function(t){set[t.toLowerCase()]=1});var add=0,cor=0;
+  try{
+    for(var k=0;k<fs.length;k++){
+      var rows=await fileRows(fs[k]);
+      rows.forEach(function(r){
+        if(r.length>=2&&r[0]&&r[1]){S.gl.push({a:r[0],b:r[1]});cor++;return}
+        var l=(r[0]||'').trim();if(!l)return;
+        var m=/^(.+?)\s*(?:→|->|=>)\s*(.+)$/.exec(l);
+        if(m){S.gl.push({a:m[1].trim(),b:m[2].trim()});cor++;return}
+        l.split(/[;\t,]+/).forEach(function(t){t=t.trim();if(t.length>1&&t.length<80&&!set[t.toLowerCase()]&&BANK.length<100000){set[t.toLowerCase()]=1;BANK.push(t);add++}});
+      });
+    }
+  }catch(e){$('stat').textContent='No se pudo leer alguno de los archivos (use .txt, .csv, .docx o .xlsx).';return}
+  var seenG={};S.gl=S.gl.filter(function(x){var q=x.a.toLowerCase();if(seenG[q])return false;seenG[q]=1;return true});
+  if(!saveBank()){BANK.length=Math.max(0,BANK.length-add);$('stat').textContent='El archivo es demasiado grande para guardarlo en este dispositivo. Divídalo en partes más chicas.';return}
+  saveCfg();renderCfg();$('bank-file').value='';$('stat').textContent='Banco actualizado: '+add+' términos nuevos'+(cor?' y '+cor+' correcciones directas':'')+'.';
+};
+$('bank-clr').onclick=function(){if(!BANK.length||!window.confirm('¿Vaciar el banco de términos de este dispositivo? (No se tocan las correcciones directas ni los vocabularios de especialidad.)'))return;BANK=[];saveBank();renderCfg()};
+$('gl-base').onclick=function(){var have={};S.gl.forEach(function(x){have[x.a.toLowerCase()]=1});var n=0;((window.CS61B&&CS61B.gl)||[]).forEach(function(x){if(!have[x.a.toLowerCase()]){S.gl.push({a:x.a,b:x.b});n++}});saveCfg();renderCfg();$('stat').textContent=n?'Se agregaron '+n+' siglas habituales.':'Ya estaban todas las siglas habituales.'};
+$('bank-exp').onclick=function(){
+  var L=['# Correcciones (escuchado → correcto)'].concat(S.gl.filter(function(x){return x.a&&x.b}).map(function(x){return x.a+' → '+x.b})).concat(['','# Términos'],S.vcus.split(/[\n,;]+/).map(function(x){return x.trim()}).filter(Boolean),BANK);
+  var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([L.join('\n')],{type:'text/plain;charset=utf-8'}));a.download='banco_terminos_cs61.txt';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},500);
+};
+
+/* ---------- sincronización con el banco compartido (planilla) ---------- */
+async function bancoPost(body){
+  var cfg=api();if(!cfg)throw {msg:'Falta conectar el script (sección «Conexión»).'};
+  body.k=cfg.key;var r;
+  try{r=await fetch(cfg.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)})}catch(e){throw {msg:'Sin conexión con el script.',off:1}}
+  var j;try{j=JSON.parse(await r.text())}catch(e){throw {msg:'El script no respondió bien. Falta publicar la nueva versión del script (Implementar → Administrar implementaciones → Nueva versión).'}}
+  if(!j.ok)throw {msg:j.error==='clave'?'El script rechazó la clave.':'Error del script: '+j.error};
+  return j;
+}
+async function shSync(manual){
+  if(!navigator.onLine){if(manual)$('stat').textContent='Sin internet: se usa el banco guardado en el dispositivo.';return}
+  if(!api())return;
+  try{
+    var j=await bancoPost({bancoget:{}}),t=[],c=[];
+    (j.items||[]).forEach(function(x){if(x[0]==='t')t.push(x[1]);else if(x[0]==='c')c.push({a:x[1],b:x[2]})});
+    SH={t:t,c:c,ts:Date.now()};
+    if(!lsSetOk('cs61_cons2_shared',JSON.stringify(SH))){SH.t=t.slice(0,20000);lsSetOk('cs61_cons2_shared',JSON.stringify(SH))}
+    IDX=null;renderCfg();if(manual)$('stat').textContent='Banco del centro actualizado: '+t.length+' términos y '+c.length+' correcciones.';
+  }catch(e){if(manual)$('stat').textContent=(e&&e.msg)||'No se pudo actualizar el banco del centro.'}
+}
+function lsSetOk(k,v){try{localStorage.setItem(k,v);return true}catch(e){return false}}
+function shItems(){
+  var have={};SH.t.forEach(function(t){have['t|'+t.toLowerCase()]=1});SH.c.forEach(function(x){have['c|'+x.a.toLowerCase()+'|'+x.b.toLowerCase()]=1});
+  var out=[],seen={};
+  function addT(t){t=String(t).trim();var k='t|'+t.toLowerCase();if(t.length>1&&t.length<80&&!have[k]&&!seen[k]){seen[k]=1;out.push(['t',t])}}
+  S.vcus.split(/[\n,;]+/).forEach(addT);BANK.forEach(addT);
+  var base={};defGl().forEach(function(x){base[x.a.toLowerCase()]=1});
+  S.gl.forEach(function(x){if(!x.a||!x.b)return;var k='c|'+x.a.toLowerCase()+'|'+x.b.toLowerCase();if(!have[k]&&!seen[k]){seen[k]=1;out.push(['c',x.a,x.b])}});
+  return out;
+}
+async function shSend(auto){
+  var it=shItems();
+  if(!it.length){if(!auto)$('stat').textContent='No hay términos nuevos para compartir.';lsSet('cs61_cons2_sharepend','');return}
+  if(!auto&&!window.confirm('Se enviarán '+it.length+' términos/correcciones al banco compartido del centro (sin texto de consultas). ¿Continuar?'))return;
+  if(!navigator.onLine||!api()){lsSet('cs61_cons2_sharepend','1');if(!auto)$('stat').textContent='Sin internet: se enviarán automáticamente cuando haya conexión.';return}
+  try{
+    var n=0;for(var i=0;i<it.length;i+=2000){var j=await bancoPost({bancoadd:{items:it.slice(i,i+2000),prof:S.prof}});n+=j.nuevos||0}
+    lsSet('cs61_cons2_sharepend','');await shSync(false);$('stat').textContent='Se compartieron '+n+' términos o correcciones nuevos con el centro.';
+  }catch(e){lsSet('cs61_cons2_sharepend','1');$('stat').textContent=((e&&e.msg)||'No se pudo compartir')+(e&&e.off?' Se reintentará cuando haya internet.':'')}
+}
+$('sh-sync').onclick=function(){shSync(true)};
+$('sh-send').onclick=function(){shSend(false)};
+window.addEventListener('online',function(){shSync(false);if(lsGet('cs61_cons2_sharepend'))shSend(true)});
+function buildPrompt(txt){
+  var libre=S.cur===LIBRE,T=tpl(),locked={},cur={};
+  T.forEach(function(f){var v=S.vals[f.id];if(v&&v.src==='man'&&v.t)locked[f.label]=v.t;else if(v&&v.t)cur[f.label]=v.t});
+  var p='Sos asistente de un nutricionista de un centro de salud de Salta, Argentina. A partir de la transcripción automática de una consulta (una sola grabación sin indicar quién habla; deducí del contexto quién dice cada cosa, profesional o paciente/familiar; puede tener errores de reconocimiento de voz) redactás la nota de la historia clínica.\n'
+   +'ESTILO: nota clínica de nutrición en tercera persona, concisa y ordenada ("Refiere…", "Presenta…", "Consume…"); agrupá y resumí lo disperso de la conversación en el bloque que corresponde, sin repetir lo mismo en dos bloques.\n'
+   +'REGLAS: usá SOLO lo dicho en la transcripción; no inventes, no diagnostiques, no completes valores no mencionados. Español rioplatense profesional, sin nombres de personas ni DNI. En evaluación/diagnóstico y recomendaciones incluí únicamente lo que el profesional dijo o indicó en la consulta; no agregues indicaciones propias. Corregí términos mal transcriptos según el glosario y el vocabulario. Los datos ambiguos, contradictorios o que parecen errores de transcripción (cifras, dosis, fármacos, fechas) van en "dudas" como pregunta corta para confirmar.\n';
+  if(libre)p+='BLOQUES: definí vos los bloques según lo conversado, en el orden de una historia clínica de nutrición (por ejemplo motivo de la visita, historia y factores de riesgo, hábitos alimentarios, medicación, antropometría, evaluación, recomendaciones), entre 3 y 8, con nombres claros. No incluyas bloques sin contenido. Cada bloque tiene "fmt": "p" (párrafo) o "l" (lista; una idea por línea que empieza con "- ").\n';
+  else p+='BLOQUES (nombre [formato] — qué incluye). Completá exactamente estos bloques, con el nombre dado:\n'+T.map(function(f){return f.label+' ['+(f.fmt==='l'?'LISTA: una idea por línea, cada línea empieza con "- "':'PÁRRAFO')+'] — '+(f.hint||'')}).join('\n')+'\nSi un bloque no tiene información en la consulta, devolvelo vacío.\n';
+  p+='GLOSARIO (escuchado → correcto):\n'+(glAll().filter(function(x){return S.gl.indexOf(x)>=0||txt.toLowerCase().indexOf(x.a.toLowerCase())>=0}).slice(0,600).map(function(x){return x.a+' → '+x.b}).join('\n')||'(vacío)')
+   +'\nVOCABULARIO (términos correctos de la especialidad y del banco, seleccionados por su parecido con lo transcripto; si algo transcripto suena parecido, usá este término):\n'+(vocabFor(txt).join(', ')||'(vacío)')
+   +'\nBLOQUES YA EDITADOS POR EL PROFESIONAL (no los reescribas; no los incluyas en la respuesta):\n'+JSON.stringify(locked)
+   +'\nBORRADOR ACTUAL (podés mejorarlo con la transcripción completa):\n'+JSON.stringify(cur)
+   +'\nTRANSCRIPCIÓN (los datos identificatorios se reemplazaron por [reservado] o [DNI]; no los incluyas en la nota, referite a "la persona" o "el paciente"):\n"""\n'+redact(txt)+'\n"""\n';
+  p+=libre?'Respondé SOLO JSON: {"bloques":[{"label":"","fmt":"p","texto":""}],"dudas":["..."]}':'Respondé SOLO JSON: {"campos":{"<nombre exacto del bloque>":"texto"},"dudas":["..."]}';
+  return p;
+}
+function redactTerms(){return $('redact').value.split(/[,;\n]+/).map(function(x){return x.trim()}).filter(function(x){return x.length>1})}
+function detectNames(txt){
+  var out=[],m,re=/(?:[A-ZÁÉÍÓÚÑ][a-záéíóúñ]{2,}(?:\s+(?:de|del|la|las|los|y)\s+)?\s*){2,5}/g;
+  while((m=re.exec(txt))){var v=m[0].trim().replace(/\s+(de|del|la|las|los|y)$/,'');if(v.split(/\s+/).length>=2)out.push(v)}
+  return out;
+}
+function redact(txt){
+  redactTerms().sort(function(a,b){return b.length-a.length}).forEach(function(t){txt=txt.replace(new RegExp('(^|[^\\p{L}])'+rx(t)+'(?![\\p{L}])','giu'),function(m,p){return p+'[reservado]'})});
+  return txt.replace(/\b\d{1,2}[.\s]?\d{3}[.\s]?\d{3}\b/g,'[DNI]');
+}
+function parseJ(t){var m=/\{[\s\S]*\}/.exec(t||'');if(!m)throw new Error('json');return JSON.parse(m[0])}
+function norm(f,x){
+  if(Array.isArray(x))x=x.join(f.fmt==='l'?'\n':' ');
+  if(typeof x!=='string')return '';
+  x=x.trim();if(!x)return '';
+  if(f.fmt==='l')return x.split(/\n+/).map(function(l){l=l.replace(/^\s*[-•*]\s*/,'').trim();return l?'- '+l:''}).filter(Boolean).join('\n');
+  return x.replace(/\s*\n+\s*/g,' ');
+}
+function applyRes(r){
+  var fl={};
+  if(S.cur===LIBRE){
+    var out=[],vals={},seen={};
+    (r.bloques||[]).forEach(function(b){
+      if(!b||!b.label)return;var id=slug(b.label);if(seen[id])return;seen[id]=1;
+      var f={id:id,label:String(b.label),hint:'',fmt:b.fmt==='l'?'l':'p'},old=S.vals[id];
+      if(old&&old.src==='man'&&old.t){vals[id]=old}
+      else{var n=norm(f,b.texto);if(!n)return;vals[id]={t:n,src:'ia'};if(!old||old.t!==n)fl[id]=1}
+      out.push(f);
+    });
+    S.auto.forEach(function(f){if(!seen[f.id]){var o=S.vals[f.id];if(o&&o.src==='man'&&o.t){out.push(f);vals[f.id]=o}}});
+    S.auto=out;S.vals=vals;
+  }else{
+    var c=r.campos||{},byLabel={};Object.keys(c).forEach(function(k){byLabel[slug(k)]=c[k]});
+    tpl().forEach(function(f){
+      var v=S.vals[f.id];if(v&&v.src==='man'&&v.t)return;
+      var n=norm(f,byLabel[slug(f.label)]);
+      if(n&&(!v||v.t!==n)){S.vals[f.id]={t:n,src:'ia'};fl[f.id]=1}
+      else if(!n&&!(v&&v.t)){S.vals[f.id]={t:'',src:''}}
+    });
+  }
+  S.dudas=Array.isArray(r&&r.dudas)?r.dudas.filter(function(x){return typeof x==='string'&&x}):[];
+  renderFields(fl);saveDraft();
+}
+
+/* ---------- llamada a la IA (script) / modo manual ---------- */
+function api(){var u=$('api-url').value.trim(),k=$('api-key').value.trim();return (u&&k)?{url:u,key:k}:null}
+function loadApi(){
+  var c=null;try{c=JSON.parse(lsGet('cs61_cons_api')||'null')}catch(e){}
+  if(!c){['cs61_pl','cs61_plcv'].forEach(function(n){if(c)return;try{var x=JSON.parse(lsGet(n)||'null');if(x&&x.url&&x.key)c=x}catch(e){}})}
+  if(c){$('api-url').value=c.url||'';$('api-key').value=c.key||''}
+}
+['api-url','api-key'].forEach(function(i){$(i).addEventListener('change',function(){lsSet('cs61_cons_api',JSON.stringify({url:$('api-url').value.trim(),key:$('api-key').value.trim()}))})});
+async function callIA(prompt,ctl,msg){
+  var cfg=api();
+  if(!cfg){$('cfg').open=true;throw {msg:'Falta conectar el script (sección «Conexión»).'}}
+  $('stat').textContent=msg||'Generando la nota…';
+  var resp;
+  try{resp=await fetch(cfg.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({k:cfg.key,nota:{prompt:prompt}}),signal:ctl?ctl.signal:undefined})}
+  catch(e){if(ctl&&ctl.signal.aborted)throw e;throw {msg:'No se pudo conectar con el script. Revise la conexión a internet y la dirección en «Conexión».'}}
+  var raw=await resp.text(),j;
+  try{j=JSON.parse(raw)}catch(e){throw {msg:'El script no devolvió una respuesta válida (código '+resp.status+'). Suele ocurrir si falta publicar la nueva versión del script (Implementar → Administrar implementaciones → Nueva versión). Detalle: '+raw.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim().slice(0,140)}}
+  if(!j.ok){
+    if(j.error==='clave')throw {msg:'El script rechazó la clave.'};
+    if(j.error==='sin_api')throw {msg:'El script todavía no tiene una clave de IA (propiedad GEMINI_KEY o ANTHROPIC_KEY).',sin:1};
+    throw {msg:'La IA devolvió un error: '+(j.detalle||j.error)};
+  }
+  return j.text;
+}
+function manual(why){
+  $('man').hidden=false;$('man-why').textContent=why;
+  $('man-copy').onclick=async function(){
+    var t=buildPrompt($('tx').value.trim());
+    try{await navigator.clipboard.writeText(t);$('stat').textContent='Indicaciones copiadas. Péguelas en la IA.'}
+    catch(e){$('man-in').value=t;$('man-in').select();$('stat').textContent='Copie el texto de la caja con Ctrl+C.'}
+  };
+  $('man-apply').onclick=function(){
+    try{applyRes(parseJ($('man-in').value));$('man-in').value='';$('man').hidden=true;$('stat').textContent='Anamnesis actualizada. Revise cada bloque antes de pasarla a la historia clínica.'}
+    catch(e){$('stat').textContent='No se pudo leer la respuesta. Pegue la respuesta completa, con el JSON.'}
+  };
+}
+async function run(){
+  var txt=$('tx').value.trim();
+  if(txt.length<20){$('stat').textContent='Todavía hay muy poco texto para generar la nota.';return}
+  var tg=applyGl(txt);if(tg!==txt){txt=tg;$('tx').value=tg;saveDraft()}
+  var ya=redactTerms().map(function(x){return x.toLowerCase()}),nuevos=[];
+  detectNames(txt).forEach(function(n){if(ya.indexOf(n.toLowerCase())<0&&nuevos.indexOf(n)<0)nuevos.push(n)});
+  if(nuevos.length){$('redact').value=(redactTerms().concat(nuevos)).join(', ');lsSet('cs61_cons2_redact',$('redact').value)}
+  var ctl=new AbortController();busy=ctl;$('go').disabled=true;$('stop').hidden=false;
+  try{
+    var t=await callIA(buildPrompt(txt),ctl),res;
+    try{res=parseJ(t)}catch(pe){
+      t=await callIA(buildPrompt(txt),ctl,'Reintentando…');
+      try{res=parseJ(t)}catch(pe2){throw {msg:'La IA respondió, pero no en el formato esperado. Pulse «Generar nota» otra vez. Respuesta recibida: '+String(t).replace(/\s+/g,' ').slice(0,120)}}
+    }
+    applyRes(res);$('man').hidden=true;$('stat').textContent='Nota generada. Revise cada bloque antes de pasarla a la historia clínica.'+(nuevos.length?' Se ocultaron antes de enviar: '+nuevos.join(', ')+'.':'');
+  }catch(e){
+    if(ctl.signal.aborted)$('stat').textContent='Cancelado.';
+    else if(e&&e.sin){manual(e.msg+' Mientras tanto, siga estos pasos.');$('stat').textContent=''}
+    else if(e&&e.msg){$('stat').textContent=e.msg;if(/conectar/.test(e.msg))manual('Falta conectar el script. Mientras tanto, siga estos pasos.')}
+    else $('stat').textContent='No se pudo completar. El texto sigue guardado; intente de nuevo.';
+  }
+  busy=null;$('go').disabled=false;$('stop').hidden=true;
+}
+$('go').onclick=function(){if(!busy)run()};
+$('stop').onclick=function(){if(busy)busy.abort()};
+$('tx').addEventListener('input',saveDraft);
+$('redact').addEventListener('change',function(){lsSet('cs61_cons2_redact',$('redact').value)});
+$('clr').onclick=function(){
+  if(!$('clr').dataset.sure){$('clr').dataset.sure='1';$('clr').textContent='Confirmar: borrar todo';setTimeout(function(){delete $('clr').dataset.sure;$('clr').textContent='Nueva consulta'},4000);return}
+  delete $('clr').dataset.sure;$('clr').textContent='Nueva consulta';
+  $('tx').value='';audioBlob=null;$('audio-dl').hidden=true;$('man').hidden=true;S.vals={};S.dudas=[];S.auto=[];$('redact').value='';lsSet('cs61_cons2_redact','');renderFields();saveDraft();$('stat').textContent='Lista para una nueva consulta.';$('stat2').textContent='';
+};
+
+/* ---------- grabación y transcripción ---------- */
+var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+var st='idle',rc=null,mr=null,chunks=[],audioBlob=null,t0=0,acc=0,tick=null,wl=null,strm=null;
+function fmt(ms){var s=Math.floor(ms/1000),m=Math.floor(s/60);s=s%60;return (m<10?'0':'')+m+':'+(s<10?'0':'')+s}
+function append(t){
+  t=applyGl(t.trim());if(!t)return;
+  var tx=$('tx');tx.value+=(tx.value&&!/\s$/.test(tx.value)?' ':'')+t;tx.scrollTop=tx.scrollHeight;saveDraft();
+}
+function ui(){
+  $('rec-go').hidden=st!=='idle';$('rec-pause').hidden=st==='idle';$('rec-stop').hidden=st==='idle';
+  $('rec-pause').textContent=st==='pause'?'▶ Reanudar':'⏸ Pausar';
+  $('dot').className='dot'+(st==='rec'?' on':'');
+  try{if(window.CS61DS)CS61DS.hold(st==='rec')}catch(e){}
+}
+function tickf(){$('timer').textContent=fmt(acc+(st==='rec'?Date.now()-t0:0))}
+function startSR(){
+  rc=new SR();rc.lang='es-AR';rc.continuous=true;rc.interimResults=true;
+  rc.onresult=function(e){
+    var it='';
+    for(var i=e.resultIndex;i<e.results.length;i++){var r=e.results[i];if(r.isFinal)append(r[0].transcript);else it+=r[0].transcript}
+    $('interim').textContent=it;
+  };
+  rc.onerror=function(e){
+    if(e.error==='not-allowed'||e.error==='service-not-allowed'){$('stat').textContent='El navegador no tiene permiso para usar el micrófono. Habilítelo en el candado de la barra de direcciones.';stopAll(true)}
+    else if(e.error==='network'){$('stat').textContent='El servicio de voz necesita conexión a internet.'}
+    else if(e.error==='audio-capture'){$('stat').textContent='No se detecta ningún micrófono.';stopAll(true)}
+  };
+  rc.onend=function(){if(st==='rec'){try{rc.start()}catch(x){setTimeout(function(){if(st==='rec'){try{rc.start()}catch(y){}}},400)}}};
+  try{rc.start()}catch(x){}
+}
+async function begin(){
+  if(!SR){$('stat').textContent='Este navegador no transcribe voz. Use Chrome o Edge en la computadora. Igual puede escribir o pegar el texto.';return}
+  if($('audio').checked){
+    try{strm=await navigator.mediaDevices.getUserMedia({audio:true});chunks=[];mr=new MediaRecorder(strm);mr.ondataavailable=function(e){if(e.data.size)chunks.push(e.data)};mr.onstop=function(){audioBlob=new Blob(chunks,{type:mr.mimeType||'audio/webm'});$('audio-dl').hidden=false};mr.start(5000)}
+    catch(e){$('stat').textContent='No se pudo acceder al micrófono para guardar el audio.';return}
+  }
+  st='rec';t0=Date.now();acc=0;audioBlob=null;$('audio-dl').hidden=true;
+  startSR();ui();tick=setInterval(tickf,500);$('stat').textContent='Grabando. Mantenga esta pestaña abierta; para usar otra herramienta abra «Otras herramientas».';
+  try{if(navigator.wakeLock)wl=await navigator.wakeLock.request('screen')}catch(e){}
+}
+function stopAll(silent){
+  if(st==='rec')acc+=Date.now()-t0;
+  var was=st;st='idle';clearInterval(tick);tickf();
+  try{rc&&rc.stop()}catch(e){}
+  try{mr&&mr.state!=='inactive'&&mr.stop()}catch(e){}
+  if(strm){strm.getTracks().forEach(function(t){t.stop()});strm=null}
+  try{wl&&wl.release()}catch(e){}
+  $('interim').textContent='';ui();
+  if(!silent&&was!=='idle')$('stat').textContent='Grabación terminada. Revise el texto y pulse «Generar nota».';
+}
+$('rec-go').onclick=begin;
+$('rec-stop').onclick=function(){stopAll()};
+$('rec-pause').onclick=function(){
+  if(st==='rec'){acc+=Date.now()-t0;st='pause';try{rc.stop()}catch(e){}try{mr&&mr.pause()}catch(e){}$('stat').textContent='En pausa.'}
+  else if(st==='pause'){st='rec';t0=Date.now();startSR();try{mr&&mr.resume()}catch(e){}$('stat').textContent='Grabando.'}
+  ui();tickf();
+};
+$('audio-dl').onclick=function(){
+  if(!audioBlob)return;var a=document.createElement('a');a.href=URL.createObjectURL(audioBlob);
+  a.download='consulta_'+new Date().toISOString().slice(0,16).replace(/[:T]/g,'-')+'.webm';document.body.appendChild(a);a.click();a.remove();
+};
+window.addEventListener('beforeunload',function(e){if(st!=='idle'){e.preventDefault();e.returnValue=''}});
+
+/* ---------- panel de otras herramientas (no corta la grabación) ---------- */
+var PERFIL='';try{PERFIL=localStorage.getItem('cs61_perfil')||''}catch(e){}
+var PERM={nutricion:['nutricion','registro','calculadora','vacunas','recursos'],pediatria:['crecimiento','vacunas','registro'],clinica:['calculadora','registro'],gineco:['embarazo','registro','calculadora'],medicina:['registro','calculadora'],enfermeria:['registro','calculadora','vacunas','recursos'],otro:['recursos','vacunas','calculadora','registro']};
+if(!PERM[PERFIL])PERM={x:['nutricion','registro','calculadora','recursos']},PERFIL='x';
+(function(){var ok=PERM[PERFIL];if(!ok)return;Array.prototype.forEach.call($('tools').querySelectorAll('.tabs button'),function(b){var u=b.getAttribute('data-u')||'';b.hidden=!ok.some(function(k){return u.indexOf('/'+k+'/')>-1})})})();
+function openTools(){
+  $('tools').hidden=false;
+  var bs=Array.prototype.slice.call($('tools').querySelectorAll('.tabs button')).filter(function(b){return !b.hidden});
+  var t=bs.filter(function(b){return b.className==='on'})[0]||bs[0];
+  if(t)t.click();
+}
+$('tools-btn').onclick=openTools;
+$('tools-x').onclick=function(){$('tools').hidden=true};
+Array.prototype.forEach.call($('tools').querySelectorAll('.tabs button'),function(b,i){
+  b.onclick=function(){
+    Array.prototype.forEach.call($('tools').querySelectorAll('.tabs button'),function(x,j){x.className=j===i?'on':'';$('tf'+j).hidden=j!==i});
+    var f=$('tf'+i);if(!f.getAttribute('src'))f.setAttribute('src',b.getAttribute('data-u'));
+  };
+});
+$('sw').addEventListener('click',function(e){
+  if(st!=='idle'){e.preventDefault();openTools();$('stat').textContent='Hay una grabación en curso. Use el panel «Otras herramientas» para no cortarla, o termine la grabación antes de cambiar.'}
+});
+
+/* ---------- nota final ---------- */
+function noteText(){
+  var d=new Date(),f=d.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'});
+  var o='CS N.º 61 Solidaridad · Consulta nutricional\nFecha: '+f+(S.prof?'\nProfesional: '+S.prof:'')+'\n';
+  tpl().forEach(function(x){var v=S.vals[x.id];if(v&&v.t)o+='\n'+x.label.toUpperCase()+'\n'+v.t+'\n'});
+  if(S.dudas&&S.dudas.length)o+='\nPENDIENTE DE CONFIRMAR\n- '+S.dudas.join('\n- ')+'\n';
+  return o;
+}
+$('copy').onclick=async function(){
+  var t=noteText();
+  try{await navigator.clipboard.writeText(t);$('stat2').textContent='Nota copiada.'}
+  catch(e){var a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();var ok=false;try{ok=document.execCommand('copy')}catch(x){}a.remove();$('stat2').textContent=ok?'Nota copiada.':'No se pudo copiar. Seleccione el texto de los bloques y copie a mano.'}
+};
+$('save').onclick=function(){
+  var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([noteText()],{type:'text/plain;charset=utf-8'}));
+  a.download='consulta_'+new Date().toISOString().slice(0,10)+'.txt';document.body.appendChild(a);a.click();a.remove();$('stat2').textContent='Archivo guardado.';
+};
+/* ---------- resumen con el formato de Acuario ---------- */
+var ACU_CODES='Z713 Consulta para instrucción y vigilancia de la dieta; E660 Obesidad debida a exceso de calorías; E441 Desnutrición proteicocalórica leve; E782 Hiperlipidemia mixta; I10 Hipertensión esencial (primaria); E119 Diabetes mellitus no insulinodependiente sin mención de complicación; K590 Constipación; Z719 Consulta, no especificada; Z349 Supervisión de embarazo normal no especificado; Z391 Atención y examen de madre en período de lactancia; Z003 Examen del estado de desarrollo del adolescente; Z762 Consulta para atención y supervisión de la salud de otros niños o lactantes sanos';
+function noteBody(){var o='';tpl().forEach(function(x){var v=S.vals[x.id];if(v&&v.t)o+=x.label.toUpperCase()+'\n'+v.t+'\n\n'});return o.trim()}
+function renderAcu(d){
+  var B=[['dat','Datos Comunidad Médica',d.datos],['dx','Diagnóstico sugerido',d.diagnostico],['tto','Tratamiento',d.tratamiento]];
+  $('acu').innerHTML='<div class="acu"><h3>Para pegar en Acuario</h3><p class="sub">Revise y edite antes de copiar. El diagnóstico es una sugerencia orientativa: lo valida el profesional.</p>'
+   +B.map(function(b){return '<div class="blk"><div class="hd"><label for="acu-'+b[0]+'">'+b[1]+'</label><button type="button" data-acu="acu-'+b[0]+'">Copiar</button></div><textarea id="acu-'+b[0]+'" rows="4">'+esc(b[2]||'')+'</textarea></div>'}).join('')
+   +'<div class="row"><button class="pri" type="button" id="acu-all">Copiar los tres bloques</button></div></div>';
+  async function cp(txt,btn){var o=btn.textContent;try{await navigator.clipboard.writeText(txt);btn.textContent='Copiado'}catch(e){btn.textContent='Seleccione y copie'}setTimeout(function(){btn.textContent=o},1500)}
+  Array.prototype.forEach.call($('acu').querySelectorAll('[data-acu]'),function(b){b.onclick=function(){cp($(b.getAttribute('data-acu')).value,b)}});
+  $('acu-all').onclick=function(){cp('DATOS COMUNIDAD MÉDICA\n'+$('acu-dat').value+'\n\nDIAGNÓSTICO SUGERIDO\n'+$('acu-dx').value+'\n\nTRATAMIENTO\n'+$('acu-tto').value,$('acu-all'))};
+}
+$('acu-go').onclick=async function(){
+  var nb=noteBody();if(nb.length<20){$('stat2').textContent='Primero genere la nota de la consulta.';return}
+  var prompt='Sos asistente de un nutricionista de un centro de salud de Salta, Argentina. A partir de la nota de consulta ya redactada, preparás los tres textos que el profesional carga en el sistema Acuario: "datos" (Datos Comunidad Médica: resumen clínico breve y ordenado de lo relevante para otros profesionales: motivo, antecedentes, datos objetivos y situación nutricional), "diagnostico" (Diagnóstico sugerido: diagnósticos o problemas nutricionales que surgen de lo registrado; si el profesional dejó un diagnóstico, usalo; si no surge nada claro, escribí "A definir por el profesional") y "tratamiento" (Tratamiento: indicaciones y plan nutricional registrados en la nota; si no hay, escribí "A definir por el profesional"). REGLAS: usá SOLO lo que figura en la nota; no inventes datos ni indicaciones; sin nombres de personas ni DNI; español profesional, conciso, frases completas (sin abreviaturas ambiguas como "21/26": escribí "21 puntos de 26 posibles"). En "diagnostico" podés agregar al final una línea "Códigos de la lista de Acuario a considerar:" con 1 a 3 códigos de esta lista, sólo si corresponden claramente: '+ACU_CODES+'.\nNOTA:\n"""\n'+redact(nb)+'\n"""\nRespondé SOLO JSON: {"datos":"","diagnostico":"","tratamiento":""}';
+  $('acu-go').disabled=true;
+  try{var r=parseJ(await callIA(prompt,null,'Preparando el resumen para Acuario…'));renderAcu({datos:String(r.datos||''),diagnostico:String(r.diagnostico||''),tratamiento:String(r.tratamiento||'')});$('stat').textContent='';$('stat2').textContent='Resumen listo. Revise antes de copiar.'}
+  catch(e){$('stat2').textContent=(e&&e.msg)||'No se pudo preparar el resumen. Intente de nuevo.'}
+  $('acu-go').disabled=false;
+};
+$('prof').addEventListener('change',function(){S.prof=$('prof').value;lsSet('cs61_cons_last',S.prof);loadCfg();planOptions();renderCfg();renderFields();saveDraft()});
+
+(function init(){
+  loadApi();
+  var last=lsGet('cs61_cons_last');if(last){S.prof=last;$('prof').value=last}
+  loadCfg();
+  var dj=lsGet('cs61_cons2_draft');
+  if(!dj){try{var od=JSON.parse(lsGet('cs61_cons_draft')||'null');if(od&&od.tx)dj=JSON.stringify({tx:od.tx})}catch(e){}}
+  if(dj){try{var d=JSON.parse(dj);$('tx').value=d.tx||'';S.vals=d.vals||{};S.dudas=d.dudas||[];S.auto=d.auto||[]}catch(e){}}
+  $('redact').value=lsGet('cs61_cons2_redact')||'';
+  loadShared();planOptions();renderCfg();renderFields();
+  if(!SH.ts||Date.now()-SH.ts>6*3600e3)shSync(false);
+  if(lsGet('cs61_cons2_sharepend'))shSend(true);
+})();
+})();
+</script><script>/*CFGSYNC*/(function(){try{fetch("../config.json",{cache:"no-store"}).then(function(r){return r.ok?r.json():null}).then(function(c){if(!c||!c.url||!/^https:\/\/script\.google\.com\//.test(c.url))return;["cs61_pl","cs61_plcv","cs61_cons_api"].forEach(function(k){try{var o=JSON.parse(localStorage.getItem(k)||"null");if(o&&o.key&&o.url!==c.url){o.url=c.url;localStorage.setItem(k,JSON.stringify(o))}}catch(e){}})}).catch(function(){})}catch(e){}})();</script><script src="../egg.js"></script></body></html>
