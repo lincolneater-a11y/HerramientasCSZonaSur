@@ -3787,6 +3787,7 @@ function esRender0() {
   if (T) H += '<div class="tw"><table class="tbl"><thead><tr><th>Indicador</th><th>Valor</th><th>Z</th><th>Percentil</th><th>Clasificación OMS</th></tr></thead><tbody>' + T + '</tbody></table></div><p class="note" style="margin-top:8px">OMS 2007: IMC/edad con delgadez &lt; −2 DE, sobrepeso &gt; +1 DE y obesidad &gt; +2 DE; talla baja &lt; −2 DE. Peso/edad de 5 a 19 años: tabla de la Guía de la SAP 2013 (P50 y desvío estándar por hemidistribución, datos OMS/NCHS); no sirve para valorar sobrepeso: priorizar IMC/edad y talla/edad. Los percentilos se estiman a partir del puntaje Z.' + (P.wc ? ' Cintura: percentilos de Fernández y cols. (2004, NHANES III; 2 a 18 años; P10 a P90) incluidos en la Guía de la SAP, con interpolación entre edades; ≥ P90 indica adiposidad abdominal y mayor riesgo cardiometabólico (componente del síndrome metabólico). Se muestra además el punto de corte P80 de Taylor y cols. (cintura mínima, DEXA).' : '') + '</p>';
   else H += '<div class="alert info">' + ICON_INFO + '<span>Ingrese peso y talla para evaluar.</span></div>';
   var pts = esPts(P);
+  var evo = esEvo(P, pts); if (evo) H += evo;
   ['b', 'h', 'wc'].forEach(function (k) { H += '<div class="lbl" style="margin:18px 0 2px">' + ES_META[k].n + '</div><div class="gr-chart">' + esChart(P, k, pts) + '</div>'; });
   if (P.m >= 24 && P.m <= 228) H += '<details style="margin-top:14px"><summary><b>Circunferencia de cintura: tabla de referencia por percentilos (' + (P.sex === 'M' ? 'varones' : 'mujeres') + ')</b></summary>' + CS61C.waistTable(P.sex) + '<p class="note">Fernández y cols., J Pediatr 2004 (NHANES III), según la Guía de la SAP 2013. Medir siempre en el mismo sitio y registrarlo.</p></details>';
   H += '<div class="legend" style="margin-top:4px"><span><i style="background:var(--teal)"></i>' + (ZMODE ? 'Z 0 (mediana)' : 'P50') + '</span><span><i style="background:var(--ink-2)"></i>' + (ZMODE ? 'Z −3 · −2 · −1 · +1 · +2 · +3 (puntaje Z)' : 'P3 · P10 · P25 · P75 · P90 · P97') + '</span><span><i style="background:var(--bordeaux);border-radius:50%"></i>Paciente</span>' + ((P.tgt && P.fh && P.mh) ? '<span><i style="background:var(--gold)"></i>Talla blanco ± 8,5 cm (a los 19 años)</span><span><i style="background:var(--bordeaux);height:0;border-top:2px dashed var(--bordeaux);background:none"></i>Proyección por el canal actual</span>' : '') + '</div>';
@@ -3972,13 +3973,25 @@ function esVelDx(P, cl, zt) {
   if (!H.ok) t += ' Intervalo de ' + fmt(H.mo, 0) + ' meses: interpretar con cautela.';
   return t;
 }
+function esEvo(P, pts) {
+  var rows = pts.filter(function (p) { return p.m >= 60 && p.m <= 228 && (p.w || p.h); });
+  if (!rows.some(function (p) { return !p.cur; })) return '';
+  var h = '<div class="lbl" style="margin:16px 0 4px">Controles registrados</div><div class="tw"><table class="tbl" id="es-evo"><thead><tr><th>Fecha</th><th>Edad</th><th>Peso (kg)</th><th>Talla (cm)</th><th>IMC</th><th>Z IMC</th><th>Z talla</th><th>IMC para la edad</th></tr></thead><tbody>';
+  var zf = function (z) { return z === null ? '—' : (z >= 0 ? '+' : '−') + fmt(Math.abs(z), 2); };
+  rows.forEach(function (p) {
+    var zb = (p.b && P.sex) ? w07Z(P.sex, 'b', p.m, p.b) : null, zh = (p.h && P.sex) ? w07Z(P.sex, 'h', p.m, p.h) : null, c = zb !== null ? esClass('b', zb) : null;
+    h += '<tr' + (p.cur ? ' style="font-weight:700"' : '') + '><td>' + (p.d ? fmtDate(new Date(p.d + 'T00:00:00')) : '—') + (p.cur ? ' (actual)' : '') + '</td><td>' + Math.floor(p.m / 12) + ' a ' + Math.floor(p.m % 12) + ' m</td><td>' + (p.w ? fmt(p.w, 1) : '—') + '</td><td>' + (p.h ? fmt(p.h, 1) : '—') + '</td><td>' + (p.b ? fmt(p.b, 1) : '—') + '</td><td>' + zf(zb) + '</td><td>' + zf(zh) + '</td><td>' + (c ? '<span class="badge ' + c[0] + '">' + c[1] + '</span>' : '—') + '</td></tr>';
+  });
+  return h + '</tbody></table></div>';
+}
 function esVelHero(P, pts) {
   var box = $('es-velhero'); ESV_H = null; esVelAcu = ''; if (!box) return null;
-  var cur = null; pts.forEach(function (p) { if (p.cur) cur = p; });
+  var cur = null, fromLast = false; pts.forEach(function (p) { if (p.cur) cur = p; });
+  if (cur && !cur.h) { var lastH = null; pts.forEach(function (p) { if (!p.cur && p.h) lastH = p; }); if (lastH) { cur = lastH; fromLast = true; } }
   if (!P.dob || !cur || !cur.h) { box.innerHTML = '<div class="alert info">' + ICON_INFO + '<span>Para ver la velocidad anual cargue la fecha de nacimiento, la fecha de control y la talla actual.</span></div>'; return null; }
   var best = null, fb = null;
   pts.forEach(function (a) {
-    if (a.cur || !a.h || !a.d) return; var mo = cur.m - a.m; if (!(mo > 0)) return; var o = { a: a, mo: mo, dist: Math.abs(mo - 12) };
+    if (a.cur || a === cur || !a.h || !a.d) return; var mo = cur.m - a.m; if (!(mo > 0)) return; var o = { a: a, mo: mo, dist: Math.abs(mo - 12) };
     if (mo >= 9 && mo <= 15) { if (!best || o.dist < best.dist) best = o; } else if (mo >= 6 && mo <= 24) { if (!fb || o.dist < fb.dist) fb = o; }
   });
   var s = best || fb;
@@ -3992,6 +4005,7 @@ function esVelHero(P, pts) {
   else H += '<div class="vh-r"><span class="badge info">' + (P.sex ? 'Fuera del rango de las láminas' : 'Falta el sexo para el centilo') + '</span></div></div>';
   H += '<p class="vh-s">Entre el control del <b>' + fd(a.d) + '</b> (' + fmt(a.h, 1) + ' cm) y el de <b>' + fd(cur.d) + '</b> (' + fmt(cur.h, 1) + ' cm): <b>' + (cur.h - a.h >= 0 ? '+' : '−') + fmt(Math.abs(cur.h - a.h), 1) + ' cm en ' + fmt(s.mo, 0) + ' meses</b> (' + days + ' días).' + (a.pl ? ' <small>Control traído de la planilla.</small>' : '') + '</p>';
   if (dw !== null) H += '<p class="vh-s2">Ganancia de peso: <b>' + fmt(dw, 1) + ' kg/año</b>' + (cw ? ' · centilo de Tanner-Whitehouse ' + twTxt(cw) : '') + '.</p>';
+  if (fromLast) H += '<div class="alert info" style="margin-top:8px">' + ICON_INFO + '<span>Todavía no se cargó la medida de hoy: se usa el último control guardado (' + fd(cur.d) + '). Al cargar peso y talla actuales, el cálculo se actualiza solo.</span></div>';
   if (!ok) H += '<div class="alert warn" style="margin-top:8px">' + ICON_WARN + '<span>No hay un control de 9 a 15 meses atrás: se usó el más cercano (' + fmt(s.mo, 0) + ' meses). Los centilos son de «año completo»: interprete con cautela.</span></div>';
   if (ch) H += '<div class="vh-m"><b>¿Qué significa ' + twTxt(ch) + '?</b> ' + esVelMean(ch) + '</div>';
   var pub = P.sex && (P.sex === 'M' ? (mid >= 12 && mid <= 16) : (mid >= 10 && mid <= 14));
