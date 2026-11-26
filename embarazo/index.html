@@ -163,7 +163,8 @@ input::placeholder { color: var(--ink-2); opacity: .6; }
 .vm i{display:block;height:100%}.vm .a{width:10%;background:var(--bordeaux-soft)}.vm .b{width:15%;background:var(--gold-soft)}.vm .c{width:50%;background:var(--ok-soft)}.vm .d{width:15%;background:var(--ok-soft);opacity:.65}.vm .e{width:10%;background:var(--gold-soft)}
 .vmw{position:relative}.vm-k{position:absolute;top:-3px;width:4px;height:20px;margin-left:-2px;background:var(--ink);border-radius:2px;box-shadow:0 0 0 2px var(--surface)}
 .vm-l{position:relative;height:16px;font-size:.7rem;color:var(--ink-2)}.vm-l span{position:absolute;transform:translateX(-50%)}
-.vh-s{margin:8px 0 0;font-size:.88rem}.vh-s2{margin:4px 0 0;font-size:.84rem;color:var(--ink-2)}
+.vh-s{margin:8px 0 0;font-size:.88rem}
+.vh-m{margin-top:10px;padding:9px 11px;border-left:4px solid var(--teal);background:var(--surface);border-radius:8px;font-size:.88rem}.vh-s2{margin:4px 0 0;font-size:.84rem;color:var(--ink-2)}
 details.vdet{margin-top:14px;border:1px solid var(--line);border-radius:10px;padding:0 12px}details.vdet>summary{cursor:pointer;font-weight:700;padding:10px 0}
 @media print{.tn-t:not([aria-pressed="true"]){display:none}.tn-g{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .alert { border-radius: 8px; padding: 10px 12px; font-size: .86rem; display: flex; gap: 10px; align-items: flex-start; }
@@ -3949,6 +3950,28 @@ document.addEventListener('click', function (e) {
   sel.value = sel.value === v ? '' : v; sel.dispatchEvent(new Event('change', { bubbles: true }));
 });
 // Velocidad anual: toma el control cuya distancia al actual sea la más cercana a 12 meses (ideal 9 a 15); incluye los guardados en la planilla
+function esVelMean(ch) {
+  var L = twClass(ch)[1];
+  if (/Enlentecida/.test(L)) return 'menos de 3 de cada 100 niños de su sexo y edad crecen tan lento o más lento. Indica un crecimiento <b>enlentecido</b>; por sí sola no es un diagnóstico: conviene confirmarlo con otro control (misma técnica), mirar la talla para la edad, el estadio de Tanner, la ingesta y descartar causas orgánicas.';
+  if (/Baja/.test(L)) return 'entre 3 y 10 de cada 100 niños de su sexo y edad crecen a esta velocidad o más lento: velocidad <b>baja, en el límite</b>. Vigilar y repetir el control.';
+  if (/Acelerada/.test(L)) return 'más de 97 de cada 100 niños de su sexo y edad crecen más lento: crecimiento <b>acelerado</b>. En el escolar suele corresponder al estirón puberal; si no hay signos de pubertad, evaluar.';
+  if (/Normal alta/.test(L)) return 'entre 90 y 97 de cada 100 niños crecen más lento: velocidad <b>normal alta</b>.';
+  return 'la velocidad está en el rango esperado (P10 a P90) para su sexo y edad.';
+}
+function esVelDx(P, cl, zt) {
+  var H = ESV_H; if (!H || !H.cls) return '';
+  var f = function (x, d) { return fmt(Math.abs(x), d); }, sg = function (x) { return (x >= 0 ? '+' : '−') + fmt(Math.abs(x), 2); }, L = H.cls;
+  var cat = /Enlentecida/.test(L) ? 'enlentecida (< P3 de Tanner-Whitehouse: menos de 3 de cada 100 niños de su sexo y edad crece tan lento)' : (/Baja/.test(L) ? 'baja (P3 a P10 de Tanner-Whitehouse, límite inferior)' : (/Acelerada/.test(L) ? 'acelerada (> P97 de Tanner-Whitehouse: más de 97 de cada 100 niños de su sexo y edad crece más lento)' : (/Normal alta/.test(L) ? 'normal alta (P90 a P97 de Tanner-Whitehouse)' : 'esperable (P10 a P90 de Tanner-Whitehouse)')));
+  var t = 'Velocidad de crecimiento ' + cat + ': ' + (H.dh >= 0 ? '+' : '−') + f(H.dh, 1) + ' cm en ' + fmt(H.mo, 0) + ' meses (' + fmt(H.v, 1) + ' cm/año).', rel = [];
+  if (cl.h) rel.push('talla para la edad ' + cl.h.toLowerCase() + (zt.h !== null && zt.h !== undefined ? ' (Z ' + sg(zt.h) + ')' : ''));
+  if (cl.b) rel.push('IMC para la edad ' + cl.b.toLowerCase() + (zt.b !== null && zt.b !== undefined ? ' (Z ' + sg(zt.b) + ')' : ''));
+  if (H.dw !== null && H.dw !== undefined) rel.push(H.dw <= 0.5 ? 'ganancia de peso mínima o nula en el período (' + fmt(H.dw, 1) + ' kg/año)' : 'ganancia de peso de ' + fmt(H.dw, 1) + ' kg/año');
+  if (H.dz !== null && H.dz !== undefined) rel.push(H.dz <= -0.5 ? 'descenso de canal de talla (Δ Z ' + sg(H.dz) + ')' : (H.dz >= 0.5 ? 'ascenso de canal de talla (Δ Z ' + sg(H.dz) + ')' : 'mantiene su canal de talla (Δ Z ' + sg(H.dz) + ')'));
+  if (rel.length) t += ' En relación con la antropometría: ' + rel.join('; ') + '.';
+  if (P.tan) t += ' Maduración puberal: Tanner ' + (P.sex === 'F' ? 'mamas ' : 'genitales ') + P.tan + (P.vp ? ', vello pubiano ' + P.vp : '') + '; interpretar la velocidad según el momento del estirón.';
+  if (!H.ok) t += ' Intervalo de ' + fmt(H.mo, 0) + ' meses: interpretar con cautela.';
+  return t;
+}
 function esVelHero(P, pts) {
   var box = $('es-velhero'); ESV_H = null; esVelAcu = ''; if (!box) return null;
   var cur = null; pts.forEach(function (p) { if (p.cur) cur = p; });
@@ -3970,9 +3993,11 @@ function esVelHero(P, pts) {
   H += '<p class="vh-s">Entre el control del <b>' + fd(a.d) + '</b> (' + fmt(a.h, 1) + ' cm) y el de <b>' + fd(cur.d) + '</b> (' + fmt(cur.h, 1) + ' cm): <b>' + (cur.h - a.h >= 0 ? '+' : '−') + fmt(Math.abs(cur.h - a.h), 1) + ' cm en ' + fmt(s.mo, 0) + ' meses</b> (' + days + ' días).' + (a.pl ? ' <small>Control traído de la planilla.</small>' : '') + '</p>';
   if (dw !== null) H += '<p class="vh-s2">Ganancia de peso: <b>' + fmt(dw, 1) + ' kg/año</b>' + (cw ? ' · centilo de Tanner-Whitehouse ' + twTxt(cw) : '') + '.</p>';
   if (!ok) H += '<div class="alert warn" style="margin-top:8px">' + ICON_WARN + '<span>No hay un control de 9 a 15 meses atrás: se usó el más cercano (' + fmt(s.mo, 0) + ' meses). Los centilos son de «año completo»: interprete con cautela.</span></div>';
+  if (ch) H += '<div class="vh-m"><b>¿Qué significa ' + twTxt(ch) + '?</b> ' + esVelMean(ch) + '</div>';
   var pub = P.sex && (P.sex === 'M' ? (mid >= 12 && mid <= 16) : (mid >= 10 && mid <= 14));
   if (pub || P.tan) H += '<p class="vh-s2">' + (P.tan ? 'Estadio de Tanner cargado: ' + (P.sex === 'F' ? 'mamas ' : 'genitales ') + TN_ROM[+P.tan] + (P.vp ? ' · vello pubiano ' + TN_ROM[+P.vp] : '') + '. ' : 'Aún no cargó el estadio de Tanner (tarjeta 2). ') + (pub ? 'En edades puberales la velocidad varía mucho según el momento del estirón: interprétela junto con la maduración.' : '') + '</p>';
-  ESV_H = { mid: mid, v: v, dw: dw };
+  var dz = null; if (a.m >= 60 && cur.m <= 228) { var z1 = w07Z(P.sex, 'h', a.m, a.h), z2 = w07Z(P.sex, 'h', cur.m, cur.h); if (z1 !== null && z2 !== null) dz = z2 - z1; }
+  ESV_H = { mid: mid, v: v, dw: dw, cls: ch ? twClass(ch)[1] : '', mo: s.mo, dh: cur.h - a.h, dz: dz, ok: ok };
   var dec = function (t) { return String(t).replace(/&lt;/g, '<').replace(/&gt;/g, '>'); };
   esVelAcu = 'Velocidad de crecimiento: ' + (cur.h - a.h >= 0 ? '+' : '−') + fmt(Math.abs(cur.h - a.h), 1) + ' cm en ' + fmt(s.mo, 0) + ' meses (' + fd(a.d) + ' a ' + fd(cur.d) + '), ' + fmt(v, 1) + ' cm/año' + (ch ? ', centilo de Tanner-Whitehouse ' + dec(twTxt(ch)) + ': ' + dec(twClass(ch)[1]) : '') + (ok ? '' : ' (intervalo de ' + fmt(s.mo, 0) + ' meses, interpretar con cautela)') + '.';
   box.innerHTML = H + '</div>';
@@ -4015,13 +4040,13 @@ function esAcu() {
   if (cl.w && cl.w !== 'Normal') dxL.push(cl.w + ' según peso/edad' + zs('w') + '.');
   if (P.wc) { var wq2 = CS61C.waist(P.sex, P.m / 12, P.wc); if (wq2 && wq2.band === '≥ P90') dxL.push('Circunferencia de cintura elevada (≥ P90).'); }
   var vl = esVelCopy.length ? esVelCopy[esVelCopy.length - 1] : '', vh = /centilo TW[^:]*: (Enlentecida|Baja|Acelerada)/.exec(vl.split(' · ')[0] || '');
-  if (vh) dxL.push('Velocidad de talla ' + (vh[1] === 'Acelerada' ? 'acelerada' : (vh[1] === 'Baja' ? 'baja' : 'enlentecida')) + (/^Velocidad anual/.test(vl) ? ' en el control de referencia (~1 año; interpretar con el estadio de Tanner).' : ' en el último intervalo (interpretar con el estadio de Tanner).'));
+  var vd = esVelDx(P, cl, zt); if (vd) dxL.push(vd); else if (vh) dxL.push('Velocidad de talla ' + (vh[1] === 'Acelerada' ? 'acelerada' : (vh[1] === 'Baja' ? 'baja' : 'enlentecida')) + ' en el último intervalo (interpretar con el estadio de Tanner).');
   var dx = dxL.join('\n') + '\nCódigos de la lista de Acuario a considerar: ' + cod.join('; ') + '.';
   var tt = [];
   if (cl.b === 'Sobrepeso' || cl.b === 'Obesidad') tt.push('Intervención sobre alimentación y actividad física con participación de la familia. Control de peso y talla periódico.');
   else if (cl.b === 'Delgadez' || cl.b === 'Delgadez severa') tt.push('Evaluar ingesta y plan de alimentación con aporte adecuado; descartar causas orgánicas y derivar según criterio clínico.');
   else tt.push('Alimentación saludable y actividad física. Control periódico del crecimiento.');
-  if (cl.h && cl.h !== 'Normal' && cl.h !== 'Talla alta' || (vh && vh[1] !== 'Acelerada')) tt.push('Controlar la velocidad de crecimiento y derivar a pediatría o endocrinología según velocidad, estadio de Tanner y talla blanco familiar.');
+  if (cl.h && cl.h !== 'Normal' && cl.h !== 'Talla alta' || (vh && vh[1] !== 'Acelerada')) tt.push('Controlar la velocidad de crecimiento (repetir peso y talla con la misma técnica en 3 a 6 meses) y derivar a pediatría o endocrinología según velocidad, estadio de Tanner y talla blanco familiar.');
   else if (esVelCopy.length) tt.push('Interpretar la velocidad de crecimiento junto con el estadio de Tanner y la talla blanco familiar.');
   tt.push('Seguimiento según el nivel de riesgo y el criterio clínico.');
   var sig = JSON.stringify([dat, dx, tt]);
@@ -4223,7 +4248,7 @@ function plSave(rec, btn) {
   }
   btn.disabled = true; btn.textContent = 'Guardando…';
   plPost(cfg, { rec: rec }).then(function (j) { if (j && j.ok) say(j.dup ? 'Ya estaba guardado' : 'Guardado ✓' + (j.codigo ? ' · ' + j.codigo : ''));
-      else if (j && (j.error === 'sin_consentimiento' || j.error === 'sin_dni' || j.error === 'faltan_hojas')) { say(j.error === 'faltan_hojas' ? 'La planilla no tiene la hoja Pacientes' : 'Falta DNI o consentimiento'); } else { var q = plQueue(); q.push(rec); plSet('cs61_pl_q', q); plStatusRefresh(); say('No se pudo guardar: quedó pendiente'); } })
+      else if (j && (j.error === 'sin_consentimiento' || j.error === 'sin_dni' || j.error === 'faltan_hojas')) { say(j.error === 'faltan_hojas' ? 'La planilla no tiene la hoja Pacientes' : 'Falta DNI o consentimiento'); } else { var q = plQueue(); q.push(rec); plSet('cs61_pl_q', q); plStatusRefresh(); say(j && j.error === 'clave' ? 'Clave incorrecta: quedó pendiente' : 'Error del script: quedó pendiente'); if (j && j.error && j.error !== 'clave') window.alert('El script de Google devolvió este error y el control quedó pendiente:\n\n' + j.error + '\n\nSi dice que falta una hoja o que no se puede leer algo de null, el script no está creado desde la planilla (Extensiones > Apps Script).'); } })
     .catch(function () { var q = plQueue(); q.push(rec); plSet('cs61_pl_q', q); plStatusRefresh(); say('Sin conexión: quedó pendiente'); });
 }
 (function () {
